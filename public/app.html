@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="HerSpace — The women's empowerment platform for Pakistan and South Asia. Career guidance, safe map, health tracking, and AI support." />
+  <title>HerSpace — Your World, Your Opportunities</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!--  PHONE FRAME                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="page-bg">
+    <!-- Company Detail Modal -->
+    <div id="company-modal" class="company-modal" aria-hidden="true">
+      <div class="company-modal-backdrop" onclick="closeCompanyModal()"></div>
+      <div class="company-modal-card" role="dialog" aria-modal="true">
+        <button class="company-modal-close" onclick="closeCompanyModal()">×</button>
+        <div class="company-modal-header">
+          <h2 id="cm-name">Company name</h2>
+          <p id="cm-industry">Industry · Location</p>
+          <div class="company-modal-rating-row">
+            <span id="cm-rating" class="badge-pill badge-sage">4.7 ★</span>
+            <span id="cm-rating-note" class="company-modal-rating-note"></span>
+          </div>
+        </div>
+        <div id="cm-tags" class="badge-row" style="margin-bottom: 12px;"></div>
+        <p id="cm-quote" class="review-quote"></p>
+        <p id="cm-reviews" class="review-meta" style="margin-bottom: 12px;"></p>
+        <div class="company-modal-section">
+          <p class="company-modal-section-label">Open roles</p>
+          <div id="cm-roles" class="company-modal-roles"></div>
+        </div>
+        <div class="company-modal-section">
+          <p class="company-modal-section-label">Contact</p>
+          <div id="cm-contact" class="company-modal-contact"></div>
+        </div>
+        <p class="company-modal-disclaimer">✦ AI-suggested contact details — verify on the company's official website
+          before applying.</p>
+      </div>
+    </div>
+    <div class="phone-frame" role="main">
+
+      <!-- ───────────────────────── SCREEN CONTAINER ───────────────────────── -->
+      <div class="screens-wrapper">
+
+        <!-- ══════════════════════ SCREEN 1 — HOME ══════════════════════════ -->
+        <section id="screen-home" class="screen active" aria-label="Home screen">
+
+          <!-- Header -->
+          <header class="screen-header crimson-header">
+            <div class="header-top-row">
+              <div>
+                <h1 class="header-heading">Welcome back, User.</h1>
+                <p class="header-subtitle">Your world, your opportunities.</p>
+              </div>
+              <div class="avatar-circle" aria-label="User initials AMZ">AMZ</div>
+            </div>
+            <div class="care-banner">
+              <span>✦ C.A.R.E. AI found 6 opportunities matched to your skills and cycle phase.</span>
+            </div>
+          </header>
+
+          <!-- Content Sheet -->
+          <div class="content-sheet scroll-area">
+
+            <!-- Stat Cards -->
+            <div class="stat-row" role="list" aria-label="Quick statistics">
+              <div class="stat-card" role="listitem">
+                <span class="stat-number crimson-num">24</span>
+                <span class="stat-label">Jobs</span>
+              </div>
+              <div class="stat-card" role="listitem">
+                <span class="stat-number sage-num">8</span>
+                <span class="stat-label">Mentors</span>
+              </div>
+              <div class="stat-card" role="listitem">
+                <span class="stat-number crimson-num">2</span>
+                <span class="stat-label">Alerts</span>
+              </div>
+            </div>
+
+            <!-- Section Label -->
+            <p class="section-label">Matched for you</p>
+
+            <!-- Opportunity Cards -->
+            <article class="left-accent-card accent-crimson" aria-label="Junior Software Engineer opportunity">
+              <div class="opp-main">
+                <div class="opp-info">
+                  <p class="opp-title">Junior Software Engineer</p>
+                  <p class="opp-meta">TechNova · Lahore</p>
+                  <div class="badge-row">
+                    <span class="badge-pill badge-sage">Women-led</span>
+                    <span class="badge-pill badge-blush">Flexible hrs</span>
+                  </div>
+                </div>
+                <span class="badge-pill badge-sage opp-match">98% match</span>
+              </div>
+            </article>
+
+            <article class="left-accent-card accent-sage" aria-label="Women in STEM scholarship">
+              <div class="opp-main">
+                <div class="opp-info">
+                  <p class="opp-title">Women in STEM Scholarship</p>
+                  <p class="opp-meta">HEC · Due Jun 30</p>
+                  <div class="badge-row">
+                    <span class="badge-pill badge-parchment">STEM</span>
+                    <span class="badge-pill badge-sage">Undergrad</span>
+                  </div>
+                </div>
+                <span class="badge-pill badge-blush opp-match">PKR 2.5L</span>
+              </div>
+            </article>
+
+            <article class="left-accent-card accent-muted" aria-label="UX Design Internship opportunity">
+              <div class="opp-main">
+                <div class="opp-info">
+                  <p class="opp-title">UX Design Internship</p>
+                  <p class="opp-meta">Bykea · Summer 2026</p>
+                  <div class="badge-row">
+                    <span class="badge-pill badge-parchment">Remote-friendly</span>
+                  </div>
+                </div>
+                <span class="badge-pill badge-sage opp-match">Paid</span>
+              </div>
+            </article>
+
+          </div><!-- /content-sheet -->
+        </section><!-- /screen-home -->
+
+
+        <!-- ═══════════════════ SCREEN 2 — COMMUNITY ═══════════════════════ -->
+        <section id="screen-community" class="screen" aria-label="Community screen">
+          <header class="screen-header crimson-header">
+            <h1 class="header-heading">Community</h1>
+            <p class="header-subtitle">Companies hiring women in <span id="community-city">your city</span>.</p>
+          </header>
+
+          <div class="content-sheet scroll-area">
+            <div class="search-bar-wrapper">
+              <input id="community-search" type="search" class="search-bar" placeholder="Search workplaces..."
+                oninput="filterCompanies()" />
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A09880"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </div>
+
+            <div class="pill-tabs" role="tablist">
+              <button id="tab-workplaces" class="pill-tab pill-tab-active"
+                onclick="communityTab('workplaces')">Workplaces</button>
+              <button id="tab-mentors" class="pill-tab" onclick="communityTab('mentors')">Mentors</button>
+
+            </div>
+
+            <!-- WORKPLACES PANEL -->
+            <div id="panel-workplaces" class="community-panel active-panel">
+              <p class="community-ai-note"><span>✦</span> AI-suggested companies for your city — verify details before
+                applying.</p>
+
+              <div id="company-list"></div>
+
+              <div id="company-loading" class="company-loading">
+                <div class="loading-shimmer"></div>
+                <div class="loading-shimmer"></div>
+                <div class="loading-shimmer"></div>
+                <p class="company-loading-text">C.A.R.E. AI is finding companies for you…</p>
+              </div>
+
+              <div id="company-empty" class="company-empty" hidden>
+                <p>No companies match your search.</p>
+              </div>
+            </div>
+
+            <!-- MENTORS PANEL -->
+            <div id="panel-mentors" class="community-panel">
+              <p class="community-ai-note"><span>✦</span> AI-generated demo mentor profiles — real mentors join after
+                launch.</p>
+
+              <div id="mentor-list"></div>
+
+              <div id="mentor-loading" class="company-loading">
+                <div class="loading-shimmer"></div>
+                <div class="loading-shimmer"></div>
+                <div class="loading-shimmer"></div>
+                <p class="company-loading-text">C.A.R.E. AI is finding mentors for you…</p>
+              </div>
+
+              <div id="mentor-empty" class="company-empty" hidden>
+                <p>No mentors match your search.</p>
+              </div>
+            </div>
+        </section><!-- /screen-community -->
+
+        <!-- ═══════════════════ SCREEN 3 — SAFE MAP ════════════════════════ -->
+        <section id="screen-map" class="screen" aria-label="Safe map screen">
+
+          <header class="screen-header sage-header">
+            <h1 class="header-heading">Safe places</h1>
+            <p class="header-subtitle">Plan a safer route · Track your trip.</p>
+          </header>
+
+          <!-- Map -->
+          <div class="map-outer-wrapper map-tall">
+            <div id="safe-map" class="map-container"></div>
+
+            <!-- Destination search overlay -->
+            <div class="map-overlay-search">
+              <div class="map-search-pill" style="pointer-events:auto;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5F2E8" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input id="destination-input" type="search" class="map-search-input"
+                  placeholder="Where to? e.g. Liberty Market" />
+                <button id="destination-search-btn" class="map-search-go" onclick="searchDestination()"
+                  aria-label="Search">→</button>
+              </div>
+            </div>
+
+            <!-- Zoom controls -->
+            <div class="map-zoom-controls" style="pointer-events:none;">
+              <button class="map-zoom-btn" style="pointer-events:auto;" onclick="mapZoomIn()">+</button>
+              <button class="map-zoom-btn" style="pointer-events:auto;" onclick="mapZoomOut()">−</button>
+            </div>
+
+            <!-- Legend -->
+            <div class="map-legend">
+              <span class="legend-dot teal-dot"></span><span class="legend-text">Safe</span>
+              <span class="legend-dot zone-dot"></span><span class="legend-text">Reported</span>
+            </div>
+
+            <!-- Report button -->
+            <button id="map-report-btn" class="map-report-btn" onclick="openReportModal()">
+              <span>⚠</span><span>Report area</span>
+            </button>
+          </div>
+
+          <!-- Route summary card (hidden until destination chosen) -->
+          <div id="route-summary" class="route-summary" hidden>
+            <div class="route-summary-top">
+              <div>
+                <p class="route-summary-label">Safest walking route</p>
+                <p id="route-summary-text" class="route-summary-text">— mins · — km</p>
+              </div>
+              <button id="route-clear-btn" class="route-clear-btn" onclick="clearRoute()"
+                aria-label="Clear route">×</button>
+            </div>
+            <p id="route-warning" class="route-warning" hidden></p>
+            <button id="route-start-btn" class="route-start-btn" onclick="startTrip()">Start trip</button>
+          </div>
+
+          <!-- Live trip card (hidden until trip starts) -->
+          <div id="trip-card" class="trip-card" hidden>
+            <div class="trip-card-top">
+              <div class="trip-card-info">
+                <p class="trip-card-label">Trip in progress</p>
+                <p id="trip-eta" class="trip-eta">15:00</p>
+                <p id="trip-status" class="trip-status">On track</p>
+              </div>
+              <div id="trip-progress-ring" class="trip-progress-ring">
+                <svg viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="26" class="ring-bg" />
+                  <circle cx="30" cy="30" r="26" id="ring-progress" class="ring-fg" />
+                </svg>
+              </div>
+            </div>
+            <div class="trip-card-actions">
+              <button class="trip-arrive-btn" onclick="arrivedTrip()">I've arrived</button>
+              <button class="trip-cancel-btn" onclick="cancelTrip()">Cancel trip</button>
+            </div>
+          </div>
+
+        </section><!-- /screen-map -->
+
+
+        <!-- ══════════════════════ SCREEN 4 — CHATBOT ═══════════════════════ -->
+        <section id="screen-chatbot" class="screen" aria-label="ChatBot screen">
+
+          <header class="screen-header crimson-header">
+            <h1 class="header-heading">ChatBot</h1>
+            <p class="header-subtitle">Career · Awareness · Resources · Empowerment.</p>
+          </header>
+
+          <!-- Sub-Tab Row -->
+          <div class="sub-tab-row" role="tablist" aria-label="ChatBot categories">
+            <button id="subtab-career" class="sub-tab sub-tab-active" role="tab" aria-selected="true"
+              onclick="switchSubTab('career')">Career</button>
+            <button id="subtab-health" class="sub-tab" role="tab" aria-selected="false"
+              onclick="switchSubTab('health')">Health</button>
+            <button id="subtab-wellbeing" class="sub-tab" role="tab" aria-selected="false"
+              onclick="switchSubTab('wellbeing')">Wellbeing</button>
+          </div>
+
+          <!-- Chat Area Panels -->
+          <div class="chat-panels-wrapper">
+
+            <!-- ── Career Panel ── -->
+            <div id="panel-career" class="chat-panel scroll-area active-panel">
+              <div id="messages-career" class="messages-container">
+
+                <!-- Pre-seeded AI bubble -->
+                <div class="bubble-row bubble-ai">
+                  <div class="bubble ai-bubble">Hi! I tailored your CV for TechNova and built your interview prep. Your
+                    energy may be lower this week based on your cycle — want lighter tasks scheduled?</div>
+                </div>
+
+                <!-- Pre-seeded User bubble -->
+                <div class="bubble-row bubble-user">
+                  <div class="bubble user-bubble">Yes please. And prep me for the interview.</div>
+                </div>
+
+                <!-- AI Download Card -->
+                <div class="bubble-row bubble-ai">
+                  <div class="ai-download-card">
+                    <div class="download-icon">📄</div>
+                    <div>
+                      <p class="download-title">CV ready · Tailored for TechNova</p>
+                      <p class="download-subtitle">5 interview questions added · Tap to view</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Quick-reply chips -->
+              <div class="quick-chips" aria-label="Quick reply options">
+                <button class="chip chip-blush" onclick="sendChip('career', 'Career roadmap')">Career roadmap</button>
+                <button class="chip chip-sage" onclick="sendChip('career', 'Find mentors')">Find mentors</button>
+                <button class="chip chip-parchment" onclick="sendChip('career', 'Skill gap check')">Skill gap
+                  check</button>
+              </div>
+            </div>
+
+            <!-- ── Health Panel ── -->
+            <div id="panel-health" class="chat-panel scroll-area">
+              <div id="messages-health" class="messages-container">
+
+                <!-- Period Tracker Card -->
+                <div class="period-tracker-card">
+                  <div class="tracker-top">
+                    <div class="tracker-icon-wrap blush-icon-bg">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7F2020" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path
+                          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </div>
+                    <div class="tracker-text">
+                      <p class="tracker-title">Period tracker</p>
+                      <p class="tracker-subtitle">Next cycle in 12 days</p>
+                    </div>
+                    <span class="badge-pill badge-blush tracker-badge">Day 16</span>
+                  </div>
+                  <div class="cycle-bar-row">
+                    <div class="cycle-bar-track">
+                      <div class="cycle-segment filled-crimson"></div>
+                      <div class="cycle-segment unfilled"></div>
+                      <div class="cycle-segment unfilled"></div>
+                    </div>
+                  </div>
+                  <div class="cycle-labels">
+                    <span>Menstrual</span>
+                    <span>Ovulation</span>
+                    <span>Luteal</span>
+                  </div>
+                </div>
+
+                <!-- 2×2 Health Cards Grid -->
+                <div class="health-grid">
+                  <div class="health-grid-card">
+                    <div class="hg-icon-wrap sage-icon-bg">❤</div>
+                    <p class="hg-title">PCOS support</p>
+                    <p class="hg-sub">Diet & symptoms</p>
+                  </div>
+                  <div class="health-grid-card">
+                    <div class="hg-icon-wrap blush-icon-bg">👶</div>
+                    <p class="hg-title">Pregnancy guide</p>
+                    <p class="hg-sub">Week by week</p>
+                  </div>
+                  <div class="health-grid-card">
+                    <div class="hg-icon-wrap parchment-icon-bg">🧠</div>
+                    <p class="hg-title">Mental wellbeing</p>
+                    <p class="hg-sub">Mood & stress</p>
+                  </div>
+                  <div class="health-grid-card">
+                    <div class="hg-icon-wrap sage-icon-bg">💊</div>
+                    <p class="hg-title">Medication log</p>
+                    <p class="hg-sub">Reminders & tracking</p>
+                  </div>
+                </div>
+
+                <!-- AI bubble -->
+                <div class="bubble-row bubble-ai">
+                  <div class="bubble ai-bubble">You're in the luteal phase — I've adjusted your job schedule and added
+                    iron-rich meal suggestions.</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ── Wellbeing Panel ── -->
+            <div id="panel-wellbeing" class="chat-panel scroll-area">
+              <div id="messages-wellbeing" class="messages-container">
+
+                <!-- AI bubble -->
+                <div class="bubble-row bubble-ai">
+                  <div class="bubble ai-bubble">How are you feeling today? I'll adjust your goals based on your mood.
+                  </div>
+                </div>
+
+                <!-- Mood grid -->
+                <div class="mood-grid">
+                  <button class="mood-card" onclick="sendMood('Good')" aria-label="Select mood: Good">
+                    <span class="mood-emoji">😊</span>
+                    <span class="mood-label">Good</span>
+                  </button>
+                  <button class="mood-card" onclick="sendMood('Struggling')" aria-label="Select mood: Struggling">
+                    <span class="mood-emoji">😟</span>
+                    <span class="mood-label" style="color:#7F2020;">Struggling</span>
+                  </button>
+                  <button class="mood-card" onclick="sendMood('Tired')" aria-label="Select mood: Tired">
+                    <span class="mood-emoji">😴</span>
+                    <span class="mood-label" style="color:#A09880;">Tired</span>
+                  </button>
+                  <button class="mood-card" onclick="sendMood('Anxious')" aria-label="Select mood: Anxious">
+                    <span class="mood-emoji">😰</span>
+                    <span class="mood-label" style="color:#4A6B45;">Anxious</span>
+                  </button>
+                </div>
+
+                <!-- Wellbeing tip card -->
+                <div class="wellbeing-tip-card">
+                  <p class="tip-label">✦ Wellbeing tip</p>
+                  <p class="tip-text">You've applied to 12 jobs this week. Take one rest day — rest is productive too.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+          </div><!-- /chat-panels-wrapper -->
+
+          <!-- Shared Chat Input Bar -->
+          <div class="chat-input-bar">
+            <input id="chat-input" type="text" class="chat-input-field" placeholder="Ask C.A.R.E. anything..."
+              aria-label="Type a message to C.A.R.E." />
+            <button id="chat-send-btn" class="send-btn" onclick="sendMessage()" aria-label="Send message">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M22 2L11 13" stroke="#F5F2E8" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M22 2L15 22 11 13 2 9l20-7z" stroke="#F5F2E8" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+        </section><!-- /screen-chatbot -->
+
+      </div><!-- /screens-wrapper -->
+
+      <!-- ───────────────────────── BOTTOM NAVIGATION ───────────────────────── -->
+      <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+        <button id="nav-home" class="nav-tab nav-tab-active" onclick="switchScreen('home')" aria-label="Home"
+          aria-current="page">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span class="nav-label">Home</span>
+        </button>
+        <button id="nav-community" class="nav-tab" onclick="switchScreen('community')" aria-label="Community">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span class="nav-label">Community</span>
+        </button>
+        <button id="nav-map" class="nav-tab" onclick="switchScreen('map')" aria-label="Safe Map">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span class="nav-label">Map</span>
+        </button>
+        <button id="nav-chatbot" class="nav-tab" onclick="switchScreen('chatbot')" aria-label="ChatBot">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span class="nav-label">ChatBot</span>
+        </button>
+      </nav>
+      <div id="report-modal" class="report-modal" aria-hidden="true">
+        <div class="report-modal-backdrop" onclick="closeReportModal()"></div>
+        <div class="report-modal-card" role="dialog" aria-modal="true">
+          <div class="report-modal-header">
+            <h3>Report an unsafe area</h3>
+            <button class="report-modal-close" onclick="closeReportModal()">×</button>
+          </div>
+          <p class="report-modal-help">Tap the map to place a pin, then describe what makes this area unsafe. Reports
+            are reviewed by AI before being posted.</p>
+          <div class="report-field">
+            <label class="report-label">Location</label>
+            <p id="report-location-text" class="report-location-text">Tap the map to choose…</p>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-category">Category</label>
+            <select id="report-category" class="report-select">
+              <option value="dimly_lit">Dimly lit / no street lights</option>
+              <option value="crowd">Crowd / loitering</option>
+              <option value="harassment">Harassment incidents</option>
+              <option value="infrastructure">Poor infrastructure</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-time">Time of day</label>
+            <select id="report-time" class="report-select">
+              <option value="any">Any time</option>
+              <option value="morning">Morning</option>
+              <option value="afternoon">Afternoon</option>
+              <option value="evening">Evening</option>
+              <option value="night" selected>Night</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-description">What happened or what's unsafe?</label>
+            <textarea id="report-description" class="report-textarea" rows="3" maxlength="500"
+              placeholder="e.g. Street lights broken on the back lane, groups of men loitering after 8pm."></textarea>
+          </div>
+          <p id="report-error" class="report-error" hidden></p>
+          <button id="report-submit" class="report-submit-btn" onclick="submitReport()">Submit report</button>
+        </div>
+      </div>
+
+      <div id="zone-sheet" class="zone-sheet" aria-hidden="true">
+        <div class="zone-sheet-handle"></div>
+        <div class="zone-sheet-header">
+          <h3 id="zone-sheet-title">Reported zone</h3>
+          <button class="zone-sheet-close" onclick="closeZoneSheet()">×</button>
+        </div>
+        <p id="zone-sheet-summary" class="zone-sheet-summary"></p>
+        <div id="zone-sheet-list" class="zone-sheet-list"></div>
+      </div>
+      <!-- Mentor Detail Modal -->
+      <div id="mentor-modal" class="company-modal" aria-hidden="true">
+        <div class="company-modal-backdrop" onclick="closeMentorModal()"></div>
+        <div class="company-modal-card" role="dialog" aria-modal="true">
+          <button class="company-modal-close" onclick="closeMentorModal()">×</button>
+          <div class="mentor-modal-top">
+            <div id="mm-avatar" class="mentor-avatar-lg">A</div>
+            <div class="mentor-modal-name-wrap">
+              <h2 id="mm-name">Mentor name</h2>
+              <p id="mm-title">Title · Company</p>
+              <div class="company-modal-rating-row">
+                <span id="mm-rating" class="badge-pill badge-sage">4.8 ★</span>
+                <span id="mm-exp" class="company-modal-rating-note">8 yrs experience</span>
+              </div>
+            </div>
+          </div>
+
+          <p id="mm-bio" class="review-quote" style="margin-top: 12px;"></p>
+
+          <div class="company-modal-section">
+            <p class="company-modal-section-label">Expertise</p>
+            <div id="mm-expertise" class="badge-row"></div>
+          </div>
+
+          <div class="company-modal-section">
+            <p class="company-modal-section-label">Availability</p>
+            <p id="mm-availability" class="mentor-detail-text"></p>
+            <p id="mm-mentees" class="mentor-detail-sub"></p>
+          </div>
+
+          <div class="company-modal-section">
+            <p class="company-modal-section-label">Languages</p>
+            <p id="mm-languages" class="mentor-detail-text"></p>
+          </div>
+
+          <div class="company-modal-section">
+            <p class="company-modal-section-label">Contact</p>
+            <div id="mm-contact" class="company-modal-contact"></div>
+          </div>
+
+          <p class="company-modal-disclaimer">✦ Demo profile generated by AI for prototype. Real mentor profiles open
+            after launch.</p>
+        </div>
+      </div>
+      <!-- Report Modal (if not already present) -->
+      <div id="report-modal" class="report-modal" aria-hidden="true">
+        <div class="report-modal-backdrop" onclick="closeReportModal()"></div>
+        <div class="report-modal-card">
+          <div class="report-modal-header">
+            <h3>Report an unsafe area</h3>
+            <button class="report-modal-close" onclick="closeReportModal()">×</button>
+          </div>
+          <p class="report-modal-help">Tap the map to place a pin, then describe what makes this area unsafe. Reports
+            are reviewed by AI before being posted.</p>
+          <div class="report-field">
+            <label class="report-label">Location</label>
+            <p id="report-location-text" class="report-location-text">Tap the map to choose…</p>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-category">Category</label>
+            <select id="report-category" class="report-select">
+              <option value="dimly_lit">Dimly lit / no street lights</option>
+              <option value="crowd">Crowd / loitering</option>
+              <option value="harassment">Harassment incidents</option>
+              <option value="infrastructure">Poor infrastructure</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-time">Time of day</label>
+            <select id="report-time" class="report-select">
+              <option value="any">Any time</option>
+              <option value="evening">Evening</option>
+              <option value="night" selected>Night</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <label class="report-label" for="report-description">What's unsafe here?</label>
+            <textarea id="report-description" class="report-textarea" rows="3" maxlength="500"
+              placeholder="e.g. Street lights broken, groups loitering after 8pm."></textarea>
+          </div>
+          <p id="report-error" class="report-error" hidden></p>
+          <button id="report-submit" class="report-submit-btn" onclick="submitReport()">Submit report</button>
+        </div>
+      </div>
+
+      <!-- Alarm Overlay -->
+      <div id="alarm-overlay" class="alarm-overlay" hidden>
+        <div class="alarm-card">
+          <div class="alarm-pulse">⚠</div>
+          <h2 class="alarm-title">You're behind schedule</h2>
+          <p class="alarm-text" id="alarm-text">You should have arrived by now. Are you safe?</p>
+          <button class="alarm-primary-btn" onclick="alertEmergencyContact()">🚨 Alert my emergency contact</button>
+          <button class="alarm-secondary-btn" onclick="dismissAlarm()">I'm safe, dismiss</button>
+        </div>
+      </div>
+
+      <!-- Alert Sent Toast -->
+      <div id="alert-toast" class="alert-toast" hidden>
+        <p>✓ Alert sent to <strong id="alert-contact-name">your emergency contact</strong>.</p>
+        <p class="alert-toast-sub">Your live location was shared.</p>
+      </div>
+    </div><!-- /phone-frame -->
+  </div><!-- /page-bg -->
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

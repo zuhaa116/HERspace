@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HerSpace — Welcome</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="auth.css" />
+</head>
+
+<body>
+    <div class="page-bg">
+        <div class="phone-frame" role="main">
+
+            <!-- ═══════════════════ VIEW 1 — LANDING ═══════════════════ -->
+            <section id="view-landing" class="auth-view active">
+                <div class="landing-hero">
+                    <div class="landing-brand-mark">
+                        <span class="landing-sparkle">✦</span>
+                        <span class="landing-divider"></span>
+                    </div>
+                    <h1 class="landing-title">HerSpace</h1>
+                    <p class="landing-tagline">Built for women.<br />Built by women.</p>
+                </div>
+
+                <div class="landing-card-stack">
+                    <div class="landing-feature-row">
+                        <div class="landing-feature-icon crimson-icon-bg">✦</div>
+                        <div class="landing-feature-text">
+                            <p class="landing-feature-title">Careers tailored to her</p>
+                            <p class="landing-feature-sub">Jobs, scholarships and mentors that fit her life.</p>
+                        </div>
+                    </div>
+                    <div class="landing-feature-row">
+                        <div class="landing-feature-icon sage-icon-bg">★</div>
+                        <div class="landing-feature-text">
+                            <p class="landing-feature-title">Rated by women, for women</p>
+                            <p class="landing-feature-sub">Verified reviews of workplaces and mentors.</p>
+                        </div>
+                    </div>
+                    <div class="landing-feature-row">
+                        <div class="landing-feature-icon crimson-icon-bg">⚑</div>
+                        <div class="landing-feature-text">
+                            <p class="landing-feature-title">A safer city, mapped by us</p>
+                            <p class="landing-feature-sub">Community-verified safe spaces and flagged areas.</p>
+                        </div>
+                    </div>
+                    <div class="landing-feature-row">
+                        <div class="landing-feature-icon sage-icon-bg">❤</div>
+                        <div class="landing-feature-text">
+                            <p class="landing-feature-title">C.A.R.E. — one AI, three lives</p>
+                            <p class="landing-feature-sub">Career, health and wellbeing in one conversation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="landing-footer">
+                    <button class="auth-primary-btn" onclick="showView('signup')">Get started</button>
+                    <p class="landing-login-link">Already have an account? <a href="#"
+                            onclick="showView('login'); return false;">Log in</a></p>
+                </div>
+            </section>
+
+            <!-- ═══════════════════ VIEW 2 — LOGIN ═══════════════════ -->
+            <section id="view-login" class="auth-view">
+                <header class="auth-header">
+                    <button class="auth-back-btn" onclick="showView('landing')" aria-label="Back">←</button>
+                    <h2 class="auth-header-title">Welcome back</h2>
+                </header>
+
+                <div class="auth-body scroll-area">
+                    <p class="auth-intro">Log in to continue your journey.</p>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="login-email">Email</label>
+                        <input type="email" id="login-email" class="auth-input" placeholder="you@example.com"
+                            autocomplete="email" />
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="auth-input" placeholder="••••••••"
+                            autocomplete="current-password" />
+                    </div>
+
+                    <p id="login-error" class="auth-error" hidden></p>
+
+                    <button id="login-submit" class="auth-primary-btn" onclick="submitLogin()">Log in</button>
+
+                    <p class="auth-switch-link">New here? <a href="#" onclick="showView('signup'); return false;">Create
+                            an account</a></p>
+                </div>
+            </section>
+
+            <!-- ═══════════════════ VIEW 3 — SIGNUP ═══════════════════ -->
+            <section id="view-signup" class="auth-view">
+                <header class="auth-header">
+                    <button class="auth-back-btn" onclick="showView('landing')" aria-label="Back">←</button>
+                    <h2 class="auth-header-title">Create your account</h2>
+                </header>
+
+                <div class="auth-body scroll-area">
+                    <p class="auth-intro">Welcome to HerSpace. Tell us a little about you.</p>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="signup-name">Full name</label>
+                        <input type="text" id="signup-name" class="auth-input" placeholder="Aymen Munib"
+                            autocomplete="name" />
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="signup-email">Email</label>
+                        <input type="email" id="signup-email" class="auth-input" placeholder="you@example.com"
+                            autocomplete="email" />
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="signup-password">Password</label>
+                        <input type="password" id="signup-password" class="auth-input"
+                            placeholder="At least 6 characters" autocomplete="new-password" />
+                    </div>
+
+                    <div class="auth-field-row">
+                        <div class="auth-field auth-half">
+                            <label class="auth-label" for="signup-city">City</label>
+                            <input type="text" id="signup-city" class="auth-input" placeholder="Lahore" />
+                        </div>
+                        <div class="auth-field auth-half">
+                            <label class="auth-label" for="signup-age">Age</label>
+                            <input type="number" id="signup-age" class="auth-input" placeholder="22" min="13"
+                                max="100" />
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label">Are you financially independent?</label>
+                        <div class="auth-toggle-row">
+                            <button type="button" class="auth-toggle-btn active" id="indep-yes"
+                                onclick="setIndep('yes')">Yes</button>
+                            <button type="button" class="auth-toggle-btn" id="indep-no" onclick="setIndep('no')">Not
+                                yet</button>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="signup-cv">Upload CV <span class="auth-optional">(optional, PDF
+                                or DOCX)</span></label>
+                        <label class="auth-file-btn" for="signup-cv">
+                            <span>📄</span> <span id="signup-cv-name">Choose file…</span>
+                        </label>
+                        <input type="file" id="signup-cv" accept=".pdf,.doc,.docx" hidden
+                            onchange="onCvChosen(event)" />
+                    </div>
+
+                    <p id="signup-error" class="auth-error" hidden></p>
+
+                    <button id="signup-submit" class="auth-primary-btn" onclick="submitSignup()">Create account</button>
+
+                    <p class="auth-switch-link">Already a member? <a href="#"
+                            onclick="showView('login'); return false;">Log in</a></p>
+                </div>
+            </section>
+
+        </div><!-- /phone-frame -->
+    </div><!-- /page-bg -->
+
+    <script src="auth.js"></script>
+</body>
+
+</html>
