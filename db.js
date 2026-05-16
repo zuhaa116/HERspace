@@ -2,17 +2,29 @@ const { Pool } = require('pg');
 
 // Railway provides DATABASE_URL automatically once you add a Postgres plugin.
 // Locally, fall back to nothing (server uses JSON files when DATABASE_URL is missing).
-const pool = process.env.DATABASE_URL
-    ? new Pool({
+let pool = null;
+if (process.env.DATABASE_URL) {
+    pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
-    })
-    : null;
-
+        connectionTimeoutMillis: 8000,
+    });
+    pool.on('error', (err) => {
+        console.error('[HerSpace] Postgres pool error:', err.message);
+    });
+}
 async function initDb() {
     if (!pool) {
         console.log('[HerSpace] No DATABASE_URL — using JSON file fallback.');
         return;
+    }
+    console.log('[HerSpace] Connecting to Postgres…');
+    try {
+        await pool.query('SELECT 1');
+        console.log('[HerSpace] Postgres connection OK.');
+    } catch (err) {
+        console.error('[HerSpace] Postgres connection FAILED:', err.message);
+        throw err;
     }
     await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -41,7 +53,7 @@ async function initDb() {
       user_id     TEXT
     );
   `);
-    console.log('[HerSpace] Postgres ready.');
+    console.log('[HerSpace] Postgres tables ready.');
 }
 
 // Row-to-object helpers

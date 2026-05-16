@@ -492,10 +492,16 @@ Return ONLY valid JSON: {"mentors": [ ... 8 objects ... ]}`;
 // ═══════════════════════════════════════════════════════════════════════════════
 // START SERVER (must be LAST)
 // ═══════════════════════════════════════════════════════════════════════════════
+app.listen(PORT, () => {
+  console.log(`[HerSpace] Server listening on port ${PORT}`);
+});
+
 (async () => {
-  await initDb();
-  await seedReportsIfEmpty();
-  app.listen(PORT, () => {
-    console.log(`[HerSpace] Server running → http://localhost:${PORT}`);
-  });
+  try {
+    await initDb();
+    await seedReportsIfEmpty();
+    console.log('[HerSpace] All ready.');
+  } catch (err) {
+    console.error('[HerSpace] Startup error:', err.message);
+  }
 })();
