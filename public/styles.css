@@ -2671,4 +2671,33 @@ body {
 
 .profile-toast[hidden] {
   display: none !important;
+
+}
+
+/* Force header avatar to fully contain its image, no overflow */
+.avatar-circle {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  position: relative !important;
+  background: #F5EDEC !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+.avatar-circle img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
 }
