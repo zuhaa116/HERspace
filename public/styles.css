@@ -2409,6 +2409,65 @@ body {
   margin-bottom: 12px;
 }
 
+/* Profile picture fills the avatar circle completely */
+.avatar-circle img,
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Header avatar in the crimson header */
+.avatar-circle {
+  position: relative;
+  overflow: hidden;
+  background: #F5EDEC;
+}
+
+/* Bigger profile avatar in the modal */
+.profile-avatar {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #F5EDEC;
+  color: #7F2020;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0 auto 4px;
+  box-shadow: 0 6px 18px rgba(127, 32, 32, 0.18);
+}
+
+/* The camera icon for changing the picture */
+.profile-camera-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #7F2020;
+  color: #F5F2E8;
+  border: 2.5px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 13px;
+}
+
+.profile-camera-btn:hover {
+  background: #6A1A1A;
+}
+
 .profile-success {
   margin: 0 0 10px;
   padding: 8px 10px;
@@ -2417,4 +2476,199 @@ body {
   border-radius: 10px;
   font-family: 'DM Sans', sans-serif;
   font-size: 11px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PROFILE MODAL — polished version
+   ════════════════════════════════════════════════════════════ */
+.profile-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 5500;
+  display: none;
+}
+
+.profile-modal.active {
+  display: block;
+}
+
+.profile-modal[hidden] {
+  display: none !important;
+}
+
+.profile-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 34, 48, 0.55);
+}
+
+.profile-modal-card {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #FFFFFF;
+  border-radius: 22px;
+  padding: 20px 18px 18px;
+  max-height: 88%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+.profile-modal-card::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: #F0EEE5;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #6B6347;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 3;
+}
+
+.profile-modal-close:hover {
+  background: #E8E3D6;
+}
+
+.profile-modal-head {
+  text-align: center;
+  margin-bottom: 18px;
+  padding-top: 4px;
+}
+
+.profile-modal-name {
+  margin: 14px 0 2px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: 22px;
+  color: #3D2B2B;
+  line-height: 1.2;
+}
+
+.profile-modal-email {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #A09880;
+}
+
+/* Form fields inside profile */
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.profile-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #6B6347;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 0.5px solid #D4CFC0;
+  border-radius: 11px;
+  background: #FFFFFF;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #3D2B2B;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: #7F2020;
+  box-shadow: 0 0 0 3px rgba(127, 32, 32, 0.10);
+}
+
+/* CV upload "Choose file" button */
+.profile-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 0.5px dashed #D4CFC0;
+  border-radius: 11px;
+  background: #FAFAF5;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #6B6347;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.profile-file-row:hover {
+  border-color: #7F2020;
+  background: #F5EDEC;
+  color: #7F2020;
+}
+
+.profile-file-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Save button */
+.profile-save-btn {
+  width: 100%;
+  padding: 14px;
+  background: #7F2020;
+  color: #F5F2E8;
+  border: 0;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+
+.profile-save-btn:hover {
+  background: #6A1A1A;
+}
+
+.profile-save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Toast confirmation when saved */
+.profile-toast {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 84px;
+  z-index: 6500;
+  background: #4A6B45;
+  color: #F5F2E8;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.profile-toast[hidden] {
+  display: none !important;
 }

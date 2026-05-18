@@ -668,43 +668,40 @@
       <!-- Profile Edit Modal -->
       <div id="profile-modal" class="profile-modal" aria-hidden="true">
         <div class="profile-modal-backdrop" onclick="closeProfileModal()"></div>
-        <div class="profile-modal-card" role="dialog" aria-modal="true">
-          <button class="profile-modal-close" onclick="closeProfileModal()" aria-label="Close">×</button>
+        <div class="profile-modal-card">
+          <button class="profile-modal-close" onclick="closeProfileModal()">×</button>
 
-          <div class="profile-avatar-wrap">
-            <div class="profile-avatar-lg" id="pm-avatar-preview">·</div>
-            <label class="profile-avatar-upload" for="pm-avatar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-            </label>
-            <input type="file" id="pm-avatar" accept="image/*" hidden onchange="onAvatarChosen(event)" />
-          </div>
-
-          <h2 class="profile-modal-name" id="pm-name">Your name</h2>
-          <p class="profile-modal-email" id="pm-email">email</p>
-
-          <div class="profile-field">
-            <label class="auth-label" for="pm-phone">Phone number</label>
-            <input type="tel" id="pm-phone" class="auth-input" placeholder="+92 300 1234567" />
+          <div class="profile-modal-head">
+            <div class="profile-avatar" id="profile-avatar">
+              <span id="profile-initials">A</span>
+              <button class="profile-camera-btn" onclick="document.getElementById('profile-pic-input').click()"
+                aria-label="Change photo">📷</button>
+              <input type="file" id="profile-pic-input" accept="image/*" hidden onchange="onProfilePicChosen(event)" />
+            </div>
+            <h2 id="profile-name" class="profile-modal-name">Name</h2>
+            <p id="profile-email" class="profile-modal-email">email@example.com</p>
           </div>
 
           <div class="profile-field">
-            <label class="auth-label">CV</label>
-            <label class="auth-file-btn" for="pm-cv">
-              <span>📄</span> <span id="pm-cv-name">Choose file…</span>
-            </label>
-            <input type="file" id="pm-cv" accept=".pdf,.doc,.docx" hidden onchange="onProfileCvChosen(event)" />
+            <label class="profile-label" for="profile-phone">Phone number</label>
+            <input id="profile-phone" class="profile-input" type="tel" placeholder="+92 300 1234567" />
           </div>
 
-          <p id="profile-error" class="auth-error" hidden></p>
-          <p id="profile-success" class="profile-success" hidden>✓ Profile saved.</p>
+          <div class="profile-field">
+            <label class="profile-label">CV</label>
+            <label class="profile-file-row" for="profile-cv-input">
+              <span class="profile-file-icon">📄</span>
+              <span id="profile-cv-name">Choose file…</span>
+            </label>
+            <input type="file" id="profile-cv-input" accept=".pdf,.doc,.docx" hidden
+              onchange="onProfileCvChosen(event)" />
+          </div>
 
-          <button id="profile-save-btn" class="auth-primary-btn" onclick="saveProfile()">Save changes</button>
+          <button class="profile-save-btn" onclick="saveProfile()">Save changes</button>
         </div>
       </div>
+
+      <div id="profile-toast" class="profile-toast" hidden>✓ Profile updated</div>
     </div><!-- /phone-frame -->
   </div><!-- /page-bg -->
 
