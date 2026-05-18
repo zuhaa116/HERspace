@@ -12,22 +12,119 @@ async function bootstrapAuth() {
     const res = await fetch('/api/me');
     const data = await res.json();
     if (!data.user) {
-      // Not logged in → kick back to landing
       window.location.replace('/');
       return;
     }
     currentUser = data.user;
-    // Populate header with real user data
-    const nameEl = document.getElementById('user-name-display');
-    if (nameEl) nameEl.textContent = currentUser.name.split(' ')[0];
-    const avatarEl = document.getElementById('user-avatar');
-    if (avatarEl) {
-      const parts = currentUser.name.trim().split(/\s+/);
-      const initials = (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
-      avatarEl.textContent = initials.toUpperCase() || currentUser.name[0].toUpperCase();
-    }
+    renderHeaderUser();
   } catch (err) {
     window.location.replace('/');
+  }
+}
+
+function renderHeaderUser() {
+  if (!currentUser) return;
+  const firstName = currentUser.name.trim().split(/\s+/)[0];
+  const nameEl = document.getElementById('user-name-display');
+  if (nameEl) nameEl.textContent = firstName;
+
+  const avatarEl = document.getElementById('user-avatar');
+  if (!avatarEl) return;
+  if (currentUser.avatarFilename) {
+    avatarEl.innerHTML = `<img src="/uploads/${encodeURIComponent(currentUser.avatarFilename)}" alt="" />`;
+  } else {
+    const parts = currentUser.name.trim().split(/\s+/);
+    const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+    avatarEl.textContent = initials || currentUser.name[0].toUpperCase();
+  }
+}
+/* ─── Home card shortcuts ─── */
+function goToHealthTracker() {
+  switchScreen('chatbot');
+  // Wait for chatbot screen to render, then jump to Health sub-tab
+  setTimeout(() => { if (typeof switchSubTab === 'function') switchSubTab('health'); }, 50);
+}
+
+/* ─── Profile modal ─── */
+let pendingAvatarFile = null;
+let pendingCvFile = null;
+
+function openProfileModal() {
+  if (!currentUser) return;
+  pendingAvatarFile = null;
+  pendingCvFile = null;
+
+  document.getElementById('pm-name').textContent = currentUser.name;
+  document.getElementById('pm-email').textContent = currentUser.email;
+  document.getElementById('pm-phone').value = currentUser.phone || '';
+  document.getElementById('pm-cv-name').textContent = currentUser.cvFilename ? 'CV uploaded ✓' : 'Choose file…';
+
+  const preview = document.getElementById('pm-avatar-preview');
+  if (currentUser.avatarFilename) {
+    preview.innerHTML = `<img src="/uploads/${encodeURIComponent(currentUser.avatarFilename)}" alt="" />`;
+  } else {
+    const parts = currentUser.name.trim().split(/\s+/);
+    const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+    preview.textContent = initials || currentUser.name[0].toUpperCase();
+  }
+
+  document.getElementById('profile-error').hidden = true;
+  document.getElementById('profile-success').hidden = true;
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.remove('active');
+}
+
+function onAvatarChosen(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingAvatarFile = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('pm-avatar-preview').innerHTML = `<img src="${ev.target.result}" alt="" />`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function onProfileCvChosen(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingCvFile = file;
+  document.getElementById('pm-cv-name').textContent = file.name;
+}
+
+async function saveProfile() {
+  const errEl = document.getElementById('profile-error');
+  const okEl = document.getElementById('profile-success');
+  const btn = document.getElementById('profile-save-btn');
+  errEl.hidden = true; okEl.hidden = true;
+
+  const form = new FormData();
+  form.append('phone', document.getElementById('pm-phone').value.trim());
+  if (pendingAvatarFile) form.append('avatar', pendingAvatarFile);
+  if (pendingCvFile) form.append('cv', pendingCvFile);
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/profile', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Could not save.';
+      errEl.hidden = false;
+      btn.disabled = false; btn.textContent = 'Save changes';
+      return;
+    }
+    currentUser = data.user;
+    renderHeaderUser();
+    okEl.hidden = false;
+    btn.disabled = false; btn.textContent = 'Save changes';
+    setTimeout(closeProfileModal, 900);
+  } catch (err) {
+    errEl.textContent = 'Could not reach server.';
+    errEl.hidden = false;
+    btn.disabled = false; btn.textContent = 'Save changes';
   }
 }
 

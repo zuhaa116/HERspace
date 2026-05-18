@@ -63,83 +63,80 @@
         <!-- ══════════════════════ SCREEN 1 — HOME ══════════════════════════ -->
         <section id="screen-home" class="screen active" aria-label="Home screen">
 
-          <!-- Header -->
-          <header class="screen-header crimson-header">
+          <header class="screen-header crimson-header home-header-v2">
             <div class="header-top-row">
               <div>
-                <h1 class="header-heading">Welcome back, User.</h1>
-                <p class="header-subtitle">Your world, your opportunities.</p>
+                <p class="home-greeting-small">Welcome back,</p>
+                <h1 class="home-name" id="user-name-display">there</h1>
               </div>
-              <div class="avatar-circle" aria-label="User initials AMZ">AMZ</div>
+              <div class="avatar-wrap-v2">
+                <button class="avatar-circle-btn" id="user-avatar-btn" onclick="openProfileModal()"
+                  aria-label="Edit profile">
+                  <span id="user-avatar">·</span>
+                </button>
+                <button class="logout-btn" onclick="logout()" title="Log out" aria-label="Log out">↪</button>
+              </div>
             </div>
             <div class="care-banner">
-              <span>✦ C.A.R.E. AI found 6 opportunities matched to your skills and cycle phase.</span>
+              <span>✦ C.A.R.E. is here whenever you need her.</span>
             </div>
           </header>
 
-          <!-- Content Sheet -->
           <div class="content-sheet scroll-area">
 
-            <!-- Stat Cards -->
-            <div class="stat-row" role="list" aria-label="Quick statistics">
-              <div class="stat-card" role="listitem">
-                <span class="stat-number crimson-num">24</span>
-                <span class="stat-label">Jobs</span>
-              </div>
-              <div class="stat-card" role="listitem">
-                <span class="stat-number sage-num">8</span>
-                <span class="stat-label">Mentors</span>
-              </div>
-              <div class="stat-card" role="listitem">
-                <span class="stat-number crimson-num">2</span>
-                <span class="stat-label">Alerts</span>
-              </div>
-            </div>
+            <p class="section-label">Your journey</p>
 
-            <!-- Section Label -->
-            <p class="section-label">Matched for you</p>
-
-            <!-- Opportunity Cards -->
-            <article class="left-accent-card accent-crimson" aria-label="Junior Software Engineer opportunity">
-              <div class="opp-main">
-                <div class="opp-info">
-                  <p class="opp-title">Junior Software Engineer</p>
-                  <p class="opp-meta">TechNova · Lahore</p>
-                  <div class="badge-row">
-                    <span class="badge-pill badge-sage">Women-led</span>
-                    <span class="badge-pill badge-blush">Flexible hrs</span>
-                  </div>
-                </div>
-                <span class="badge-pill badge-sage opp-match">98% match</span>
+            <!-- Card 1: Period tracker -->
+            <article class="home-action-card home-card-blush" onclick="goToHealthTracker()" tabindex="0" role="button">
+              <div class="home-card-icon home-icon-crimson">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
               </div>
+              <div class="home-card-text">
+                <h3>Track your period</h3>
+                <p>Cycle, symptoms and gentle reminders.</p>
+              </div>
+              <span class="home-card-arrow">→</span>
             </article>
 
-            <article class="left-accent-card accent-sage" aria-label="Women in STEM scholarship">
-              <div class="opp-main">
-                <div class="opp-info">
-                  <p class="opp-title">Women in STEM Scholarship</p>
-                  <p class="opp-meta">HEC · Due Jun 30</p>
-                  <div class="badge-row">
-                    <span class="badge-pill badge-parchment">STEM</span>
-                    <span class="badge-pill badge-sage">Undergrad</span>
-                  </div>
-                </div>
-                <span class="badge-pill badge-blush opp-match">PKR 2.5L</span>
+            <!-- Card 2: Safe map -->
+            <article class="home-action-card home-card-sage" onclick="switchScreen('map')" tabindex="0" role="button">
+              <div class="home-card-icon home-icon-sage">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
               </div>
+              <div class="home-card-text">
+                <h3>Get started on your journey</h3>
+                <p>Plan a safer route on the community map.</p>
+              </div>
+              <span class="home-card-arrow">→</span>
             </article>
 
-            <article class="left-accent-card accent-muted" aria-label="UX Design Internship opportunity">
-              <div class="opp-main">
-                <div class="opp-info">
-                  <p class="opp-title">UX Design Internship</p>
-                  <p class="opp-meta">Bykea · Summer 2026</p>
-                  <div class="badge-row">
-                    <span class="badge-pill badge-parchment">Remote-friendly</span>
-                  </div>
-                </div>
-                <span class="badge-pill badge-sage opp-match">Paid</span>
+            <!-- Card 3: Community/Career -->
+            <article class="home-action-card home-card-parchment" onclick="switchScreen('community')" tabindex="0"
+              role="button">
+              <div class="home-card-icon home-icon-crimson">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+                  <path d="M10 7V5h4v2" />
+                </svg>
               </div>
+              <div class="home-card-text">
+                <h3>Start your career journey</h3>
+                <p>Explore women-friendly workplaces near you.</p>
+              </div>
+              <span class="home-card-arrow">→</span>
             </article>
+
+            <p class="home-tip">✦ Tap C.A.R.E. anytime for one-on-one guidance.</p>
 
           </div><!-- /content-sheet -->
         </section><!-- /screen-home -->
@@ -667,6 +664,46 @@
       <div id="alert-toast" class="alert-toast" hidden>
         <p>✓ Alert sent to <strong id="alert-contact-name">your emergency contact</strong>.</p>
         <p class="alert-toast-sub">Your live location was shared.</p>
+      </div>
+      <!-- Profile Edit Modal -->
+      <div id="profile-modal" class="profile-modal" aria-hidden="true">
+        <div class="profile-modal-backdrop" onclick="closeProfileModal()"></div>
+        <div class="profile-modal-card" role="dialog" aria-modal="true">
+          <button class="profile-modal-close" onclick="closeProfileModal()" aria-label="Close">×</button>
+
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar-lg" id="pm-avatar-preview">·</div>
+            <label class="profile-avatar-upload" for="pm-avatar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </label>
+            <input type="file" id="pm-avatar" accept="image/*" hidden onchange="onAvatarChosen(event)" />
+          </div>
+
+          <h2 class="profile-modal-name" id="pm-name">Your name</h2>
+          <p class="profile-modal-email" id="pm-email">email</p>
+
+          <div class="profile-field">
+            <label class="auth-label" for="pm-phone">Phone number</label>
+            <input type="tel" id="pm-phone" class="auth-input" placeholder="+92 300 1234567" />
+          </div>
+
+          <div class="profile-field">
+            <label class="auth-label">CV</label>
+            <label class="auth-file-btn" for="pm-cv">
+              <span>📄</span> <span id="pm-cv-name">Choose file…</span>
+            </label>
+            <input type="file" id="pm-cv" accept=".pdf,.doc,.docx" hidden onchange="onProfileCvChosen(event)" />
+          </div>
+
+          <p id="profile-error" class="auth-error" hidden></p>
+          <p id="profile-success" class="profile-success" hidden>✓ Profile saved.</p>
+
+          <button id="profile-save-btn" class="auth-primary-btn" onclick="saveProfile()">Save changes</button>
+        </div>
       </div>
     </div><!-- /phone-frame -->
   </div><!-- /page-bg -->

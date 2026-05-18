@@ -488,7 +488,68 @@ Return ONLY valid JSON: {"mentors": [ ... 8 objects ... ]}`;
     return res.status(503).json({ error: 'Could not reach AI service.' });
   }
 });
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROFILE UPDATE (phone, profile picture, CV)
+// ═══════════════════════════════════════════════════════════════════════════════
+const profileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+    filename: (req, file, cb) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
+      cb(null, `${Date.now()}_${crypto.randomBytes(4).toString('hex')}_${safe}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
+app.post('/api/profile', requireAuth,
+  profileUpload.fields([{ name: 'cv', maxCount: 1 }, { name: 'avatar', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const { phone } = req.body;
+      const cvFile = req.files?.cv?.[0];
+      const avatarFile = req.files?.avatar?.[0];
+
+      // Update in-memory user object
+      const updates = {};
+      if (typeof phone === 'string') updates.phone = phone.trim().slice(0, 30) || null;
+      if (cvFile) updates.cvFilename = cvFile.filename;
+      if (avatarFile) updates.avatarFilename = avatarFile.filename;
+
+      if (pool) {
+        // Make sure columns exist (one-time migration)
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_filename TEXT;`);
+
+        const setParts = [];
+        const values = [];
+        let i = 1;
+        if ('phone' in updates) { setParts.push(`phone=$${i++}`); values.push(updates.phone); }
+        if ('cvFilename' in updates) { setParts.push(`cv_filename=$${i++}`); values.push(updates.cvFilename); }
+        if ('avatarFilename' in updates) { setParts.push(`avatar_filename=$${i++}`); values.push(updates.avatarFilename); }
+        if (setParts.length) {
+          values.push(req.user.id);
+          await pool.query(`UPDATE users SET ${setParts.join(', ')} WHERE id=$${i}`, values);
+        }
+        const r = await pool.query('SELECT * FROM users WHERE id=$1', [req.user.id]);
+        return res.json({ ok: true, user: sanitize(userFromRow(r.rows[0])) });
+      } else {
+        const arr = loadUsersFile();
+        const idx = arr.findIndex(u => u.id === req.user.id);
+        if (idx === -1) return res.status(404).json({ error: 'User not found.' });
+        Object.assign(arr[idx], updates);
+        saveUsersFile(arr);
+        return res.json({ ok: true, user: sanitize(arr[idx]) });
+      }
+    } catch (err) {
+      console.error('[HerSpace] Profile update error:', err.message);
+      return res.status(500).json({ error: err.message || 'Could not update profile.' });
+    }
+  }
+);
+
+// Make uploads folder publicly accessible so profile pictures display
+app.use('/uploads', express.static(UPLOAD_DIR));
 // ═══════════════════════════════════════════════════════════════════════════════
 // START SERVER (must be LAST)
 // ═══════════════════════════════════════════════════════════════════════════════

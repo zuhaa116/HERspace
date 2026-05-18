@@ -64,6 +64,8 @@ function userFromRow(r) {
         name: r.name, city: r.city, age: r.age,
         independent: r.independent,
         cvFilename: r.cv_filename,
+        avatarFilename: r.avatar_filename || null,
+        phone: r.phone || null,
         createdAt: Number(r.created_at),
     };
 }
