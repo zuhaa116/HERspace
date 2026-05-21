@@ -5,8 +5,10 @@
 /* ─────────────────────────────────────────────────
    0. AUTH GATE — runs before everything else
    ───────────────────────────────────────────────── */
+   
 let currentUser = null;
-
+let mentorsLoaded = false;
+let allMentors = [];
 async function bootstrapAuth() {
   try {
     const res = await fetch('/api/me');
@@ -201,28 +203,21 @@ async function loadCompanies() {
   if (companiesLoaded) return;
   const cityEl = document.getElementById('community-city');
   if (cityEl && currentUser) cityEl.textContent = currentUser.city;
-refreshCvBannerFromUser();
+
   const listEl = document.getElementById('company-list');
   const loadingEl = document.getElementById('company-loading');
   const emptyEl = document.getElementById('company-empty');
 
+  // Safety: if any element is missing, the Community panel HTML hasn't loaded yet
+  if (!listEl || !loadingEl || !emptyEl) {
+    console.error('Community panel elements missing — check app.html for #company-list, #company-loading, #company-empty');
+    return;
+  }
+
+  refreshCvBannerFromUser();
   listEl.innerHTML = '';
   loadingEl.style.display = 'block';
-  emptyEl.hidden = true;
-
-  try {
-    const res = await fetch('/api/companies');
-    if (!res.ok) throw new Error('Server error');
-    const data = await res.json();
-    allCompanies = data.companies || [];
-    companiesLoaded = true;
-    loadingEl.style.display = 'none';
-    renderCompanies(allCompanies);
-  } catch (err) {
-    loadingEl.style.display = 'none';
-    listEl.innerHTML = `<p class="company-error">Could not load companies. <a href="#" onclick="companiesLoaded=false;loadCompanies();return false;">Try again</a></p>`;
-  }
-}
+  emptyEl.hidden = true; }
 
 function renderCompanies(companies) {
   const listEl = document.getElementById('company-list');
@@ -362,28 +357,17 @@ if (typeof escapeHtml !== 'function') {
   let mentorsLoaded = false;
 
   async function loadMentors() {
-    if (mentorsLoaded) return;
-    const listEl = document.getElementById('mentor-list');
-    const loadingEl = document.getElementById('mentor-loading');
-    const emptyEl = document.getElementById('mentor-empty');
+  if (mentorsLoaded) return;
+  const listEl = document.getElementById('mentor-list');
+  const loadingEl = document.getElementById('mentor-loading');
+  const emptyEl = document.getElementById('mentor-empty');
 
-    listEl.innerHTML = '';
-    loadingEl.style.display = 'block';
-    emptyEl.hidden = true;
-
-    try {
-      const res = await fetch('/api/mentors');
-      if (!res.ok) throw new Error('Server error');
-      const data = await res.json();
-      allMentors = data.mentors || [];
-      mentorsLoaded = true;
-      loadingEl.style.display = 'none';
-      renderMentors(allMentors);
-    } catch (err) {
-      loadingEl.style.display = 'none';
-      listEl.innerHTML = `<p class="company-error">Could not load mentors. <a href="#" onclick="mentorsLoaded=false;loadMentors();return false;">Try again</a></p>`;
-    }
+  if (!listEl || !loadingEl || !emptyEl) {
+    console.error('Mentor panel elements missing — check app.html for #mentor-list, #mentor-loading, #mentor-empty');
+    return;
   }
+
+  listEl.innerHTML = '';
 
   function renderMentors(mentors) {
     const listEl = document.getElementById('mentor-list');
@@ -1127,5 +1111,5 @@ function refreshCvBannerFromUser() {
   banner.classList.add('cv-banner-success');
   titleEl.textContent = '✓ CV uploaded — matching jobs to you';
   subEl.textContent = 'Tap Replace to upload a new one.';
-  btn.textContent = 'Replace';
-}
+ btn.textContent = 'Replace';
+}}
