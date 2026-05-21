@@ -169,22 +169,19 @@
 
             <!-- WORKPLACES PANEL -->
             <div id="panel-workplaces" class="community-panel active-panel">
-              <p class="community-ai-note"><span>✦</span> AI-suggested companies for your city — verify details before
-                applying.</p>
 
-              <div id="company-list"></div>
+  <!-- CV upload banner -->
+  <div id="cv-banner" class="cv-banner">
+    <div class="cv-banner-icon">📄</div>
+    <div class="cv-banner-text">
+      <p id="cv-banner-title" class="cv-banner-title">Upload your CV for personalized jobs</p>
+      <p id="cv-banner-sub" class="cv-banner-sub">AI will match opportunities to your skills.</p>
+    </div>
+    <button id="cv-banner-btn" class="cv-banner-btn" onclick="document.getElementById('cv-upload-input').click()">Upload</button>
+    <input type="file" id="cv-upload-input" accept=".pdf,.doc,.docx" hidden onchange="onCvUpload(event)" />
+  </div>
 
-              <div id="company-loading" class="company-loading">
-                <div class="loading-shimmer"></div>
-                <div class="loading-shimmer"></div>
-                <div class="loading-shimmer"></div>
-                <p class="company-loading-text">C.A.R.E. AI is finding companies for you…</p>
-              </div>
-
-              <div id="company-empty" class="company-empty" hidden>
-                <p>No companies match your search.</p>
-              </div>
-            </div>
+  <p class="community-ai-note"><span>✦</span> AI-suggested companies — verify details before applying.</p>
 
             <!-- MENTORS PANEL -->
             <div id="panel-mentors" class="community-panel">

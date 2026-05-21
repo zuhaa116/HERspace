@@ -11,7 +11,8 @@ const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 // ═══════════════════════════════════════════════════════════════════════════════
 // JSON FILE DATABASE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -150,6 +151,34 @@ function sanitize(user) {
   const { passwordHash, ...safe } = user;
   return safe;
 }
+async function extractCvText(filePath, mimetype) {
+  const buf = fs.readFileSync(filePath);
+  try {
+    if (mimetype === 'application/pdf') {
+      const data = await pdfParse(buf);
+      return (data.text || '').trim().slice(0, 8000);
+    }
+    if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        mimetype === 'application/msword') {
+      const result = await mammoth.extractRawText({ buffer: buf });
+      return (result.value || '').trim().slice(0, 8000);
+    }
+  } catch (err) {
+    console.error('[HerSpace] CV parse error:', err.message);
+  }
+  return '';
+}
+
+// DB helper
+async function updateUserCv(userId, cvFilename, cvText) {
+  if (pool) {
+    await pool.query('UPDATE users SET cv_filename=$1, cv_text=$2 WHERE id=$3', [cvFilename, cvText, userId]);
+    return;
+  }
+  const arr = loadUsersFile();
+  const u = arr.find(x => x.id === userId);
+  if (u) { u.cvFilename = cvFilename; u.cvText = cvText; saveUsersFile(arr); }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTH ROUTES
@@ -269,9 +298,10 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey === 'sk-replace-me') return res.status(500).json({ error: 'Server not configured.' });
 
-  const profileNote = ` The user you are speaking to is ${req.user.name}, age ${req.user.age}, based in ${req.user.city}. ` +
-    `She has indicated she is ${req.user.independent ? 'financially independent' : 'not yet financially independent'}.`;
-
+ const cvSnippet = (req.user.cvText || '').slice(0, 2500);
+const profileNote = ` The user you are speaking to is ${req.user.name}, age ${req.user.age}, based in ${req.user.city}. ` +
+  `She has indicated she is ${req.user.independent ? 'financially independent' : 'not yet financially independent'}.` +
+  (cvSnippet ? ` Here is her CV for context — reference her actual experience when relevant:\n"""${cvSnippet}"""` : '');
   const fullMessages = [
     { role: 'system', content: SYSTEM_PROMPTS[subTab] + profileNote },
     ...messages,
@@ -379,26 +409,34 @@ app.get('/api/companies', requireAuth, async (req, res) => {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey === 'sk-replace-me') return res.status(500).json({ error: 'Server not configured.' });
+const user = await findUserById(req.user.id);
+const cvSnippet = (user.cvText || '').slice(0, 3500);
+const cvBlock = cvSnippet
+  ? `\nHere is the user's CV text — use it to personalize the matches:\n"""\n${cvSnippet}\n"""\n`
+  : `\nThe user has not uploaded a CV yet, so generate a generally good list.\n`;
+const prompt = `You are a careers research assistant for HerSpace, a women's empowerment app in Pakistan.
 
-  const prompt = `You are a careers research assistant for HerSpace, a women's empowerment app in Pakistan.
+The user lives in ${city}, Pakistan.
+${cvBlock}
 
-Generate a list of 8 real, well-known companies and organizations actively hiring in ${city}, Pakistan, that are known to be reasonably women-friendly workplaces. Mix of: technology, fintech, FMCG, banking, telecom, NGOs, healthcare, education.
+Generate a list of 8 real, well-known companies and organizations actively hiring in ${city} that are known to be reasonably women-friendly workplaces AND would be a good match for this user's background and interests. Mix industries based on what the CV suggests; if no CV, mix tech/fintech/FMCG/banking/telecom/NGOs.
 
 For EACH company, return:
 - name: real company name
-- industry: short tag (Technology, Banking, FMCG, Telecom, NGO, etc)
+- industry: short tag
 - locationNote: short note about their ${city} office
-- rating: number 3.0-4.9 representing how women-friendly
-- ratingNote: short reason for the rating
-- tags: 1-3 tags from ONLY: ["Safe workplace", "Women promoted", "Maternity covered", "Flexible hours", "Hybrid OK", "Day-care onsite", "Mixed reviews", "Male-dominated", "Equal pay"]
-- reviewCount: realistic number 30-300
-- quote: ONE short quote a woman employee might write (under 110 chars), neutral
-- website: best-guess official URL (only if confident, else null)
-- email: best-guess careers email (only if confident, else null)
-- phone: best-guess HR phone +92 format (only if confident, else null)
-- openRoles: 2-4 short job titles they might be hiring for
+- rating: 3.0-4.9 women-friendliness rating
+- ratingNote: short reason
+- tags: 1-3 from ["Safe workplace", "Women promoted", "Maternity covered", "Flexible hours", "Hybrid OK", "Day-care onsite", "Mixed reviews", "Male-dominated", "Equal pay"]
+- reviewCount: 30-300
+- quote: ONE short quote a woman employee might write (under 110 chars)
+- website: best-guess URL or null
+- email: best-guess careers email or null
+- phone: best-guess HR phone +92 format or null
+- openRoles: 2-4 role titles MATCHED TO THE USER'S CV SKILLS if a CV is provided (otherwise 2-4 general open roles)
+- matchReason: ONE short sentence explaining WHY this company is a good fit for the user based on her CV (or null if no CV)
 
-CRITICAL: only fill website/email/phone if reasonably confident they are real. Use null otherwise.
+CRITICAL: only fill website/email/phone if reasonably confident. Use null otherwise.
 
 Return ONLY valid JSON: {"companies": [ ... 8 objects ... ]}`;
 
@@ -553,6 +591,21 @@ app.use('/uploads', express.static(UPLOAD_DIR));
 // ═══════════════════════════════════════════════════════════════════════════════
 // START SERVER (must be LAST)
 // ═══════════════════════════════════════════════════════════════════════════════
+app.post('/api/cv/upload', requireAuth, upload.single('cv'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+  const cvText = await extractCvText(req.file.path, req.file.mimetype);
+  if (!cvText || cvText.length < 50) {
+    return res.status(400).json({ error: "Couldn't read your CV. Make sure it's a real PDF or DOCX with text content." });
+  }
+
+  await updateUserCv(req.user.id, req.file.filename, cvText);
+
+  // Clear the cached company list for this user's city so AI re-matches with the new CV
+  companyCache.delete(req.user.city.toLowerCase());
+
+  res.json({ ok: true, filename: req.file.filename, charsExtracted: cvText.length });
+});
 app.listen(PORT, () => {
   console.log(`[HerSpace] Server listening on port ${PORT}`);
 });

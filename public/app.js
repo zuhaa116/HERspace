@@ -201,7 +201,7 @@ async function loadCompanies() {
   if (companiesLoaded) return;
   const cityEl = document.getElementById('community-city');
   if (cityEl && currentUser) cityEl.textContent = currentUser.city;
-
+refreshCvBannerFromUser();
   const listEl = document.getElementById('company-list');
   const loadingEl = document.getElementById('company-loading');
   const emptyEl = document.getElementById('company-empty');
@@ -253,7 +253,8 @@ function renderCompanies(companies) {
         <span class="badge-pill ${ratingClass}">${ratingNum.toFixed(1)} ★</span>
       </div>
       ${tagPills ? `<div class="badge-row" style="margin: 6px 0;">${tagPills}</div>` : ''}
-      ${c.quote ? `<p class="review-quote">"${escapeHtml(c.quote)}"</p>` : ''}
+    ${c.matchReason ? `<p class="company-match-reason">✦ ${escapeHtml(c.matchReason)}</p>` : ''}
+${c.quote ? `<p class="review-quote">"${escapeHtml(c.quote)}"</p>` : ''}
       <p class="review-meta">${c.reviewCount || 0} reviews · AI-suggested · Tap for details</p>
     `;
     card.addEventListener('click', () => openCompanyModal(idx));
@@ -1056,3 +1057,62 @@ document.addEventListener('DOMContentLoaded', () => {
   const at = document.getElementById('alert-toast');
   if (at) at.hidden = true;
 });
+/* ─── CV upload from Community ─── */
+async function onCvUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const banner = document.getElementById('cv-banner');
+  const btn = document.getElementById('cv-banner-btn');
+  const titleEl = document.getElementById('cv-banner-title');
+  const subEl = document.getElementById('cv-banner-sub');
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  titleEl.textContent = 'Reading your CV…';
+  subEl.textContent = 'AI is matching jobs to your skills.';
+
+  const form = new FormData();
+  form.append('cv', file);
+
+  try {
+    const res = await fetch('/api/cv/upload', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) {
+      titleEl.textContent = 'CV upload failed';
+      subEl.textContent = data.error || 'Try a different file.';
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+      return;
+    }
+    // Update banner to "uploaded" state
+    banner.classList.add('cv-banner-success');
+    titleEl.textContent = '✓ CV uploaded — matching jobs to you';
+    subEl.textContent = `${file.name} · Tap to replace`;
+    btn.textContent = 'Replace';
+    btn.disabled = false;
+
+    // Refresh the companies list with CV-matched jobs
+    companiesLoaded = false;
+    await loadCompanies();
+  } catch (err) {
+    titleEl.textContent = 'Upload failed';
+    subEl.textContent = 'Check your connection and try again.';
+    btn.disabled = false;
+    btn.textContent = 'Try again';
+  }
+}
+
+// On load, show "✓ CV uploaded" state if the user already has one
+function refreshCvBannerFromUser() {
+  if (!currentUser || !currentUser.cvFilename) return;
+  const banner = document.getElementById('cv-banner');
+  const btn = document.getElementById('cv-banner-btn');
+  const titleEl = document.getElementById('cv-banner-title');
+  const subEl = document.getElementById('cv-banner-sub');
+  if (!banner) return;
+  banner.classList.add('cv-banner-success');
+  titleEl.textContent = '✓ CV uploaded — matching jobs to you';
+  subEl.textContent = 'Tap Replace to upload a new one.';
+  btn.textContent = 'Replace';
+}

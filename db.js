@@ -36,6 +36,7 @@ async function initDb() {
       age          INT  NOT NULL,
       independent  BOOLEAN NOT NULL,
       cv_filename  TEXT,
+       cv_text      TEXT,
       created_at   BIGINT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (
@@ -54,20 +55,20 @@ async function initDb() {
     );
   `);
     console.log('[HerSpace] Postgres tables ready.');
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cv_text TEXT;`);
 }
 
 // Row-to-object helpers
 function userFromRow(r) {
-    if (!r) return null;
-    return {
-        id: r.id, email: r.email, passwordHash: r.password_hash,
-        name: r.name, city: r.city, age: r.age,
-        independent: r.independent,
-        cvFilename: r.cv_filename,
-        avatarFilename: r.avatar_filename || null,
-        phone: r.phone || null,
-        createdAt: Number(r.created_at),
-    };
+  if (!r) return null;
+  return {
+    id: r.id, email: r.email, passwordHash: r.password_hash,
+    name: r.name, city: r.city, age: r.age,
+    independent: r.independent,
+    cvFilename: r.cv_filename,
+    cvText: r.cv_text,                          // ← add this
+    createdAt: Number(r.created_at),
+  };
 }
 function reportFromRow(r) {
     return {
