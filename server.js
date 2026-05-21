@@ -404,6 +404,13 @@ const COMPANY_CACHE_TTL = 1000 * 60 * 60;
 // REAL JOBS via JSearch (RapidAPI) — falls back to AI generation if no key
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/companies', requireAuth, async (req, res) => {
+  // Hard request timeout — Railway kills slow requests
+  req.setTimeout(25000, () => {
+    if (!res.headersSent) {
+      console.warn('[HerSpace] /api/companies timeout');
+      res.status(504).json({ error: 'Request timed out', companies: [] });
+    }
+  });
   const city = req.user.city;
   const cached = companyCache.get(`${req.user.id}:${city.toLowerCase()}`);
   if (cached && Date.now() - cached.generatedAt < COMPANY_CACHE_TTL) {
@@ -452,12 +459,22 @@ CV:
   if (rapidKey) {
     try {
       const jsUrl = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&num_pages=1&country=pk&date_posted=month`;
-      const jsRes = await fetch(jsUrl, {
-        headers: {
-          'X-RapidAPI-Key': rapidKey,
-          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
-        },
-      });
+     const ctrl = new AbortController();
+const t = setTimeout(() => ctrl.abort(), 12000);
+let jsRes;
+try {
+  jsRes = await fetch(jsUrl, {
+    headers: {
+      'X-RapidAPI-Key': rapidKey,
+      'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+    },
+    signal: ctrl.signal,
+  });
+} catch (e) {
+  console.error('[HerSpace] JSearch aborted/error:', e.message);
+} finally {
+  clearTimeout(t);
+}
       if (jsRes.ok) {
         const jsData = await jsRes.json();
         jobs = (jsData.data || []).slice(0, 8);
@@ -700,6 +717,7 @@ if (!cvText || cvText.length < 50) {
 
   res.json({ ok: true, filename: req.file.filename, charsExtracted: cvText.length });
 });
+app.get('/healthz', (req, res) => res.json({ ok: true }));
 app.listen(PORT, () => {
   console.log(`[HerSpace] Server listening on port ${PORT}`);
 });
