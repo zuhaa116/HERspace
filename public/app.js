@@ -313,9 +313,16 @@ function openCompanyModal(idx) {
   document.getElementById('cm-reviews').textContent = `${c.reviewCount || 0} reviews · AI-suggested`;
 
   const rolesEl = document.getElementById('cm-roles');
-  rolesEl.innerHTML = (c.openRoles && c.openRoles.length)
-    ? c.openRoles.map(r => `<span class="role-chip">${escapeHtml(r)}</span>`).join('')
-    : '<p class="company-modal-empty">No open roles listed.</p>';
+if (c.openRoles && c.openRoles.length) {
+  rolesEl.innerHTML = c.openRoles.map(r => {
+    if (c.realJobLink) {
+      return `<a class="role-chip role-chip-link" href="${escapeAttr(c.realJobLink)}" target="_blank" rel="noopener">${escapeHtml(r)} →</a>`;
+    }
+    return `<span class="role-chip">${escapeHtml(r)}</span>`;
+  }).join('');
+} else {
+  rolesEl.innerHTML = '<p class="company-modal-empty">No open roles listed.</p>';
+}
 
   const contactEl = document.getElementById('cm-contact');
   const parts = [];
@@ -323,7 +330,13 @@ function openCompanyModal(idx) {
   if (c.email) parts.push(`<a class="contact-row" href="mailto:${escapeAttr(c.email)}"><span class="contact-icon">✉</span><span>${escapeHtml(c.email)}</span></a>`);
   if (c.phone) parts.push(`<a class="contact-row" href="tel:${escapeAttr(c.phone.replace(/[^0-9+]/g, ''))}"><span class="contact-icon">📞</span><span>${escapeHtml(c.phone)}</span></a>`);
   contactEl.innerHTML = parts.length ? parts.join('') : '<p class="company-modal-empty">No verified contact details — search the company website to apply.</p>';
-
+// Update disclaimer based on data source
+const discEl = document.getElementById('cm-disclaimer');
+if (discEl) {
+  discEl.textContent = c.realJobLink
+    ? '✦ Real job listing from across the web. Tap a role to apply.'
+    : '✦ AI-suggested — verify on the company\'s official website before applying.';
+}
   const modal = document.getElementById('company-modal');
   modal.setAttribute('aria-hidden', 'false');
   modal.classList.add('active');

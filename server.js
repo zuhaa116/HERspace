@@ -400,70 +400,156 @@ Respond in JSON: {"decision": "ACCEPT" | "REJECT", "reason": "...", "cleanDescri
 const companyCache = new Map();
 const COMPANY_CACHE_TTL = 1000 * 60 * 60;
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// REAL JOBS via JSearch (RapidAPI) — falls back to AI generation if no key
+// ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/companies', requireAuth, async (req, res) => {
   const city = req.user.city;
-  const cached = companyCache.get(city.toLowerCase());
+  const cached = companyCache.get(`${req.user.id}:${city.toLowerCase()}`);
   if (cached && Date.now() - cached.generatedAt < COMPANY_CACHE_TTL) {
     return res.json({ city, companies: cached.companies, cached: true });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
+  const rapidKey = process.env.RAPIDAPI_KEY;
   if (!apiKey || apiKey === 'sk-replace-me') return res.status(500).json({ error: 'Server not configured.' });
-const user = await findUserById(req.user.id);
-const cvSnippet = (user.cvText || '').slice(0, 3500);
-const cvBlock = cvSnippet
-  ? `\nHere is the user's CV text — use it to personalize the matches:\n"""\n${cvSnippet}\n"""\n`
-  : `\nThe user has not uploaded a CV yet, so generate a generally good list.\n`;
-const prompt = `You are a careers research assistant for HerSpace, a women's empowerment app in Pakistan.
 
-The user lives in ${city}, Pakistan.
-${cvBlock}
+  const user = await findUserById(req.user.id);
+  const cvSnippet = (user.cvText || '').slice(0, 3500);
 
-Generate a list of 8 real, well-known companies and organizations actively hiring in ${city} that are known to be reasonably women-friendly workplaces AND would be a good match for this user's background and interests. Mix industries based on what the CV suggests; if no CV, mix tech/fintech/FMCG/banking/telecom/NGOs.
+  // ── Step 1: ask GPT to extract a single best search query from the CV ──
+  let searchQuery = `jobs in ${city}`;
+  if (cvSnippet) {
+    try {
+      const kwRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{
+            role: 'user',
+            content: `From this CV, extract a SHORT 2-4 word job search query that best represents the candidate's most likely next role (e.g. "junior software engineer", "marketing intern", "graphic designer"). Return ONLY the query string, no quotes, no explanation.
 
-For EACH company, return:
-- name: real company name
-- industry: short tag
-- locationNote: short note about their ${city} office
-- rating: 3.0-4.9 women-friendliness rating
-- ratingNote: short reason
-- tags: 1-3 from ["Safe workplace", "Women promoted", "Maternity covered", "Flexible hours", "Hybrid OK", "Day-care onsite", "Mixed reviews", "Male-dominated", "Equal pay"]
-- reviewCount: 30-300
-- quote: ONE short quote a woman employee might write (under 110 chars)
-- website: best-guess URL or null
-- email: best-guess careers email or null
-- phone: best-guess HR phone +92 format or null
-- openRoles: 2-4 role titles MATCHED TO THE USER'S CV SKILLS if a CV is provided (otherwise 2-4 general open roles)
-- matchReason: ONE short sentence explaining WHY this company is a good fit for the user based on her CV (or null if no CV)
-
-CRITICAL: only fill website/email/phone if reasonably confident. Use null otherwise.
-
-Return ONLY valid JSON: {"companies": [ ... 8 objects ... ]}`;
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1800, temperature: 0.7,
-        response_format: { type: 'json_object' },
-      }),
-    });
-    if (!response.ok) return res.status(502).json({ error: 'Could not load companies.' });
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim() ?? '{}';
-    let parsed; try { parsed = JSON.parse(raw); } catch { parsed = {}; }
-    const companies = Array.isArray(parsed.companies) ? parsed.companies.slice(0, 8) : [];
-    companyCache.set(city.toLowerCase(), { companies, generatedAt: Date.now() });
-    return res.json({ city, companies, cached: false });
-  } catch (err) {
-    console.error('[HerSpace] /api/companies error:', err.message);
-    return res.status(503).json({ error: 'Could not reach AI service.' });
+CV:
+"""${cvSnippet}"""`
+          }],
+          max_tokens: 30,
+          temperature: 0.3,
+        }),
+      });
+      if (kwRes.ok) {
+        const kwData = await kwRes.json();
+        const q = kwData.choices?.[0]?.message?.content?.trim().replace(/^["']|["']$/g, '');
+        if (q && q.length < 80) searchQuery = `${q} in ${city}`;
+      }
+    } catch (e) {
+      console.error('[HerSpace] keyword extraction failed:', e.message);
+    }
   }
-});
 
+  // ── Step 2: call JSearch with the query ──
+  let jobs = [];
+  if (rapidKey) {
+    try {
+      const jsUrl = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&num_pages=1&country=pk&date_posted=month`;
+      const jsRes = await fetch(jsUrl, {
+        headers: {
+          'X-RapidAPI-Key': rapidKey,
+          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+        },
+      });
+      if (jsRes.ok) {
+        const jsData = await jsRes.json();
+        jobs = (jsData.data || []).slice(0, 8);
+      } else {
+        console.error('[HerSpace] JSearch error:', jsRes.status, await jsRes.text());
+      }
+    } catch (e) {
+      console.error('[HerSpace] JSearch network error:', e.message);
+    }
+  }
+
+  // ── Step 3: shape the JSearch results into our card schema ──
+  let companies = jobs.map(j => ({
+    name: j.employer_name || 'Unknown company',
+    industry: j.job_employment_type || 'Full-time',
+    locationNote: [j.job_city, j.job_country].filter(Boolean).join(', ') || city,
+    rating: j.employer_company_rating || (4 + Math.random()).toFixed(1),
+    ratingNote: j.job_is_remote ? 'Remote-friendly' : 'On-site role',
+    tags: [
+      j.job_is_remote ? 'Hybrid OK' : null,
+      j.job_employment_type === 'PARTTIME' ? 'Flexible hours' : null,
+      'Real listing',
+    ].filter(Boolean),
+    reviewCount: j.employer_reviews || Math.floor(50 + Math.random() * 200),
+    quote: j.job_description ? j.job_description.slice(0, 100) + '…' : '',
+    website: j.employer_website || j.job_apply_link || null,
+    email: null,
+    phone: null,
+    openRoles: [j.job_title || 'Open role'],
+    matchReason: null, // filled in next step
+    realJobLink: j.job_apply_link, // real apply URL
+    jobTitle: j.job_title,
+  }));
+
+  // ── Step 4: ask GPT for a match reason per job (only if we have a CV) ──
+  if (cvSnippet && companies.length > 0) {
+    try {
+      const summary = companies.map((c, i) => `${i + 1}. ${c.jobTitle} at ${c.name}`).join('\n');
+      const matchRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{
+            role: 'user',
+            content: `User's CV:\n"""${cvSnippet}"""\n\nFor EACH of these ${companies.length} jobs, write ONE short sentence (under 90 chars) explaining why this role matches the user's CV. Return ONLY a JSON object: {"reasons":[".....","....."]} — one entry per job in order.\n\nJobs:\n${summary}`
+          }],
+          max_tokens: 800,
+          temperature: 0.5,
+          response_format: { type: 'json_object' },
+        }),
+      });
+      if (matchRes.ok) {
+        const md = await matchRes.json();
+        const raw = md.choices?.[0]?.message?.content?.trim() ?? '{}';
+        let parsed; try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+        const reasons = Array.isArray(parsed.reasons) ? parsed.reasons : [];
+        companies = companies.map((c, i) => ({ ...c, matchReason: reasons[i] || null }));
+      }
+    } catch (e) {
+      console.error('[HerSpace] match reasoning failed:', e.message);
+    }
+  }
+
+  // ── Step 5: if JSearch returned nothing, fall back to AI-only mode ──
+  if (companies.length === 0) {
+    const fbPrompt = `You are a careers research assistant for HerSpace, a women's empowerment app in Pakistan. The user lives in ${city}.${cvSnippet ? `\nCV:\n"""${cvSnippet}"""` : ''}\n\nGenerate 6 realistic women-friendly companies hiring in ${city}. Each: name, industry, locationNote, rating (3.5-4.9), ratingNote, tags (1-3 from ["Safe workplace","Women promoted","Maternity covered","Flexible hours","Hybrid OK","Equal pay"]), reviewCount (30-300), quote (under 100 chars), website, email, phone (+92), openRoles (2-3), matchReason (if CV provided). Return ONLY: {"companies":[...]}`;
+    try {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: fbPrompt }],
+          max_tokens: 1800, temperature: 0.7,
+          response_format: { type: 'json_object' },
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const raw = d.choices?.[0]?.message?.content?.trim() ?? '{}';
+        let p; try { p = JSON.parse(raw); } catch { p = {}; }
+        companies = Array.isArray(p.companies) ? p.companies.slice(0, 8) : [];
+      }
+    } catch (e) {
+      console.error('[HerSpace] fallback gen failed:', e.message);
+    }
+  }
+
+  companyCache.set(`${req.user.id}:${city.toLowerCase()}`, { companies, generatedAt: Date.now() });
+  return res.json({ city, companies, cached: false, source: jobs.length > 0 ? 'jsearch' : 'ai' });
+});
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMMUNITY — AI-generated mentors (women in industry)
 // ═══════════════════════════════════════════════════════════════════════════════

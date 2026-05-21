@@ -2773,3 +2773,12 @@ body {
   line-height: 1.4;
   font-weight: 500;
 }
+/* Role chip when it's a real apply link */
+.role-chip-link {
+  background: #4A6B45;
+  color: #F5F2E8 !important;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.role-chip-link:hover { background: #3A5635; }
