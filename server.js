@@ -594,10 +594,18 @@ app.use('/uploads', express.static(UPLOAD_DIR));
 app.post('/api/cv/upload', requireAuth, upload.single('cv'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
 
-  const cvText = await extractCvText(req.file.path, req.file.mimetype);
-  if (!cvText || cvText.length < 50) {
-    return res.status(400).json({ error: "Couldn't read your CV. Make sure it's a real PDF or DOCX with text content." });
-  }
+let cvText = '';
+try {
+  cvText = await extractCvText(req.file.path, req.file.mimetype);
+} catch (err) {
+  console.error('[HerSpace] CV parse threw:', err.message);
+}
+
+if (!cvText || cvText.length < 50) {
+  return res.status(400).json({
+    error: "We couldn't read this PDF. Some PDFs (especially scanned or mobile-exported ones) have unusual formatting. Please try uploading a Word (.docx) version, or re-save the PDF from your computer."
+  });
+}
 
   await updateUserCv(req.user.id, req.file.filename, cvText);
 
