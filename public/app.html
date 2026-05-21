@@ -167,7 +167,8 @@
             </div>
 
             <!-- WORKPLACES PANEL -->
-            <div id="panel-workplaces" class="community-panel active-panel">
+<!-- WORKPLACES PANEL -->
+<div id="panel-workplaces" class="community-panel active-panel">
 
   <!-- CV upload banner -->
   <div id="cv-banner" class="cv-banner">
@@ -182,24 +183,38 @@
 
   <p class="community-ai-note"><span>✦</span> AI-suggested companies — verify details before applying.</p>
 
-            <!-- MENTORS PANEL -->
-            <div id="panel-mentors" class="community-panel">
-              <p class="community-ai-note"><span>✦</span> AI-generated demo mentor profiles — real mentors join after
-                launch.</p>
+  <div id="company-list"></div>
 
-              <div id="mentor-list"></div>
+  <div id="company-loading" class="company-loading">
+    <div class="loading-shimmer"></div>
+    <div class="loading-shimmer"></div>
+    <div class="loading-shimmer"></div>
+    <p class="company-loading-text">C.A.R.E. AI is finding companies for you…</p>
+  </div>
 
-              <div id="mentor-loading" class="company-loading">
-                <div class="loading-shimmer"></div>
-                <div class="loading-shimmer"></div>
-                <div class="loading-shimmer"></div>
-                <p class="company-loading-text">C.A.R.E. AI is finding mentors for you…</p>
-              </div>
+  <div id="company-empty" class="company-empty" hidden>
+    <p>No companies match your search.</p>
+  </div>
 
-              <div id="mentor-empty" class="company-empty" hidden>
-                <p>No mentors match your search.</p>
-              </div>
-            </div>
+</div>
+
+<!-- MENTORS PANEL -->
+<div id="panel-mentors" class="community-panel">
+  <p class="community-ai-note"><span>✦</span> AI-generated demo mentor profiles — real mentors join after launch.</p>
+
+  <div id="mentor-list"></div>
+
+  <div id="mentor-loading" class="company-loading">
+    <div class="loading-shimmer"></div>
+    <div class="loading-shimmer"></div>
+    <div class="loading-shimmer"></div>
+    <p class="company-loading-text">C.A.R.E. AI is finding mentors for you…</p>
+  </div>
+
+  <div id="mentor-empty" class="company-empty" hidden>
+    <p>No mentors match your search.</p>
+  </div>
+</div>
         </section><!-- /screen-community -->
 
         <!-- ═══════════════════ SCREEN 3 — SAFE MAP ════════════════════════ -->

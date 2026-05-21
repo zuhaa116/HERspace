@@ -1055,6 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (at) at.hidden = true;
 });
 /* ─── CV upload from Community ─── */
+/* ─── CV upload from Community ─── */
 async function onCvUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1082,14 +1083,12 @@ async function onCvUpload(e) {
       btn.textContent = 'Try again';
       return;
     }
-    // Update banner to "uploaded" state
     banner.classList.add('cv-banner-success');
     titleEl.textContent = '✓ CV uploaded — matching jobs to you';
     subEl.textContent = `${file.name} · Tap to replace`;
     btn.textContent = 'Replace';
     btn.disabled = false;
 
-    // Refresh the companies list with CV-matched jobs
     companiesLoaded = false;
     await loadCompanies();
   } catch (err) {
@@ -1098,6 +1097,19 @@ async function onCvUpload(e) {
     btn.disabled = false;
     btn.textContent = 'Try again';
   }
+}
+
+function refreshCvBannerFromUser() {
+  if (!currentUser || !currentUser.cvFilename) return;
+  const banner = document.getElementById('cv-banner');
+  const btn = document.getElementById('cv-banner-btn');
+  const titleEl = document.getElementById('cv-banner-title');
+  const subEl = document.getElementById('cv-banner-sub');
+  if (!banner) return;
+  banner.classList.add('cv-banner-success');
+  titleEl.textContent = '✓ CV uploaded — matching jobs to you';
+  subEl.textContent = 'Tap Replace to upload a new one.';
+  btn.textContent = 'Replace';
 }
 
 // On load, show "✓ CV uploaded" state if the user already has one
