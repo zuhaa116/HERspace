@@ -1241,3 +1241,5 @@ if (typeof window.onCvUpload !== 'function') {
 if (typeof onCvUpload === 'function') {
   window.onCvUpload = onCvUpload;
 }
+// Defensive global registration — ensures onCvUpload is callable from HTML
+window.onCvUpload = onCvUpload;
