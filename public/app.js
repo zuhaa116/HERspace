@@ -1397,6 +1397,15 @@ if (typeof window.onCvUpload !== 'function') {
     }
   };
 }
+// Defensive globals — ensures all interactive functions are reachable from HTML
+if (typeof onDestInput === 'function')      window.onDestInput = onDestInput;
+if (typeof onDestKey === 'function')        window.onDestKey = onDestKey;
+if (typeof pickDestSuggestion === 'function') window.pickDestSuggestion = pickDestSuggestion;
+if (typeof searchDestination === 'function')  window.searchDestination = searchDestination;
+if (typeof onCvUpload === 'function')       window.onCvUpload = onCvUpload;
+if (typeof mapZoomIn === 'function')        window.mapZoomIn = mapZoomIn;
+if (typeof mapZoomOut === 'function')       window.mapZoomOut = mapZoomOut;
+if (typeof openReportModal === 'function')  window.openReportModal = openReportModal;
 // Make sure onCvUpload is globally accessible from HTML
 if (typeof onCvUpload === 'function') {
   window.onCvUpload = onCvUpload;
