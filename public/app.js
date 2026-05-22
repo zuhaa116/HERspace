@@ -145,33 +145,33 @@ document.addEventListener('DOMContentLoaded', bootstrapAuth);
 const SCREENS = ['home', 'community', 'map', 'chatbot'];
 
 function switchScreen(name) {
-  SCREENS.forEach(id => {
-    const screen = document.getElementById('screen-' + id);
-    const nav = document.getElementById('nav-' + id);
-    if (!screen || !nav) return;
-    if (id === name) {
-      screen.classList.add('active');
-      nav.classList.add('nav-tab-active');
-      nav.setAttribute('aria-current', 'page');
-    } else {
-      screen.classList.remove('active');
-      nav.classList.remove('nav-tab-active');
-      nav.removeAttribute('aria-current');
-    }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screen = document.getElementById('screen-' + name);
+  if (screen) screen.classList.add('active');
+
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.remove('nav-tab-active');
+    t.removeAttribute('aria-current');
   });
-
-  // Initialise map only when its screen becomes visible
-  // Initialise map only when its screen becomes visible
-  if (name === 'map' && !mapInitialised) {
-    initMap();
+  const nav = document.getElementById('nav-' + name);
+  if (nav) {
+    nav.classList.add('nav-tab-active');
+    nav.setAttribute('aria-current', 'page');
   }
 
-  // Load AI-generated companies the first time community is opened
-  if (name === 'community' && !companiesLoaded) {
-    loadCompanies();
+  if (name === 'map' && !mapInitialised) initMap();
+
+  // Always load companies when community is opened — defensive against stale state
+  if (name === 'community') {
+    if (!companiesLoaded) {
+      console.log('[switchScreen] community opened, calling loadCompanies');
+      loadCompanies();
+    } else {
+      console.log('[switchScreen] community already loaded');
+    }
   }
+
 }
-
 /* ─────────────────────────────────────────────────
    2. COMMUNITY PILL TABS
    ───────────────────────────────────────────────── */
