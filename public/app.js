@@ -1081,6 +1081,9 @@ async function onCvUpload(e) {
   const titleEl = document.getElementById('cv-banner-title');
   const subEl = document.getElementById('cv-banner-sub');
 
+  // Show loading toast
+  const loadingToast = showToast(`Uploading ${file.name}…`, 'loading');
+
   btn.disabled = true;
   btn.textContent = 'Uploading…';
   titleEl.textContent = 'Reading your CV…';
@@ -1092,13 +1095,19 @@ async function onCvUpload(e) {
   try {
     const res = await fetch('/api/cv/upload', { method: 'POST', body: form });
     const data = await res.json();
+    dismissToast(loadingToast);
+
     if (!res.ok) {
+      const errMsg = data.error || 'Try a different file.';
+      showToast(errMsg, 'error');
       titleEl.textContent = 'CV upload failed';
-      subEl.textContent = data.error || 'Try a different file.';
+      subEl.textContent = errMsg.slice(0, 60);
       btn.disabled = false;
       btn.textContent = 'Try again';
       return;
     }
+
+    showToast(`CV uploaded — matching jobs now`, 'success');
     banner.classList.add('cv-banner-success');
     titleEl.textContent = '✓ CV uploaded — matching jobs to you';
     subEl.textContent = `${file.name} · Tap to replace`;
@@ -1106,8 +1115,14 @@ async function onCvUpload(e) {
     btn.disabled = false;
 
     companiesLoaded = false;
+    const matchingToast = showToast('AI is finding new matches…', 'loading');
     await loadCompanies();
+    dismissToast(matchingToast);
+    showToast('Found ' + (allCompanies.length || 0) + ' matched jobs', 'success');
+
   } catch (err) {
+    dismissToast(loadingToast);
+    showToast('Could not reach the server', 'error');
     titleEl.textContent = 'Upload failed';
     subEl.textContent = 'Check your connection and try again.';
     btn.disabled = false;
@@ -1141,3 +1156,27 @@ function refreshCvBannerFromUser() {
   subEl.textContent = 'Tap Replace to upload a new one.';
  btn.textContent = 'Replace';
 }}
+/* ─── Toast notifications ─── */
+function showToast(message, type) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + (type || 'info');
+  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'loading' ? '⟳' : 'ℹ';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+  // Auto-dismiss after 4 seconds unless it's a loading toast
+  if (type !== 'loading') {
+    setTimeout(() => {
+      toast.classList.add('toast-out');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+  return toast;
+}
+
+function dismissToast(toast) {
+  if (!toast) return;
+  toast.classList.add('toast-out');
+  setTimeout(() => toast.remove(), 300);
+}
