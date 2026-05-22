@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { pool, initDb, userFromRow, reportFromRow } = require('./db');
+const { pool, initDb, userFromRow, reportFromRow, tripFromRow } = require('./db');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -746,6 +746,39 @@ if (!cvText || cvText.length < 50) {
   res.json({ ok: true, filename: req.file.filename, charsExtracted: cvText.length });
 });
 app.get('/healthz', (req, res) => res.json({ ok: true }));
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRIPS — recent journeys per user
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/api/trips', requireAuth, async (req, res) => {
+  if (!pool) return res.json({ trips: [] });
+  try {
+    const r = await pool.query(
+      'SELECT * FROM trips WHERE user_id=$1 ORDER BY created_at DESC LIMIT 8',
+      [req.user.id]
+    );
+    res.json({ trips: r.rows.map(tripFromRow) });
+  } catch (e) {
+    console.error('[HerSpace] /api/trips GET:', e.message);
+    res.status(500).json({ error: 'Could not load trips.' });
+  }
+});
+
+app.post('/api/trips', requireAuth, async (req, res) => {
+  const { destination, originLat, originLng, destLat, destLng, durationSeconds, distanceM, status } = req.body;
+  if (!destination || typeof destination !== 'string') return res.status(400).json({ error: 'destination required.' });
+  if (!pool) return res.json({ ok: true });
+  try {
+    await pool.query(
+      `INSERT INTO trips (user_id, destination, origin_lat, origin_lng, dest_lat, dest_lng, duration_seconds, distance_m, status, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [req.user.id, destination.slice(0, 200), originLat, originLng, destLat, destLng, durationSeconds, distanceM, status || 'completed', Date.now()]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[HerSpace] /api/trips POST:', e.message);
+    res.status(500).json({ error: 'Could not save trip.' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`[HerSpace] Server listening on port ${PORT}`);
 });

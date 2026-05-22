@@ -53,9 +53,23 @@ async function initDb() {
       created_at  BIGINT NOT NULL,
       user_id     TEXT
     );
+    CREATE TABLE IF NOT EXISTS trips (
+  id          SERIAL PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  destination TEXT NOT NULL,
+  origin_lat  DOUBLE PRECISION,
+  origin_lng  DOUBLE PRECISION,
+  dest_lat    DOUBLE PRECISION,
+  dest_lng    DOUBLE PRECISION,
+  duration_seconds INT,
+  distance_m  INT,
+  status      TEXT,
+  created_at  BIGINT NOT NULL
+);
   `);
     console.log('[HerSpace] Postgres tables ready.');
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cv_text TEXT;`);
+    await pool.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS distance_m INT;`);
 }
 
 // Row-to-object helpers
@@ -79,4 +93,15 @@ function reportFromRow(r) {
     };
 }
 
-module.exports = { pool, initDb, userFromRow, reportFromRow };
+function tripFromRow(r) {
+  return {
+    id: r.id, userId: r.user_id, destination: r.destination,
+    originLat: r.origin_lat, originLng: r.origin_lng,
+    destLat: r.dest_lat, destLng: r.dest_lng,
+    durationSeconds: r.duration_seconds,
+    distanceM: r.distance_m,
+    status: r.status,
+    createdAt: Number(r.created_at),
+  };
+}
+module.exports = { pool, initDb, userFromRow, reportFromRow, tripFromRow };

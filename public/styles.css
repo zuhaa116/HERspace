@@ -2905,3 +2905,99 @@ body {
   display: inline-block;
   margin: -4px 0 8px;
 }
+/* ════════════════════════════════════════════════════════════
+   SMALLER REPORT BUTTON + RECENT TRIPS
+   ════════════════════════════════════════════════════════════ */
+
+/* Compact icon-only report button */
+.map-report-btn-small {
+  position: absolute;
+  top: 56px;
+  right: 12px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #7F2020;
+  color: #F5F2E8;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: background 0.15s, transform 0.12s;
+}
+.map-report-btn-small:hover { background: #6A1A1A; transform: scale(1.05); }
+
+/* Recent trips section */
+.trips-section {
+  padding: 14px 16px;
+  background: #FAFAF5;
+  border-top: 0.5px solid #E8E3D6;
+  flex-shrink: 0;
+}
+.trips-section-title {
+  margin: 0 0 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #A09880;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trips-empty {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: #A09880;
+  font-style: italic;
+}
+
+.trip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 0.5px solid #D4CFC0;
+  border-radius: 11px;
+}
+.trip-row-info { flex: 1; min-width: 0; }
+.trip-row-dest {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #3D2B2B;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trip-row-meta {
+  margin: 2px 0 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: #A09880;
+}
+
+.trip-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 18px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.trip-badge-ok { background: #EDF2EB; color: #4A6B45; }
+.trip-badge-cancel { background: #F0EEE5; color: #6B6347; }

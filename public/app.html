@@ -259,9 +259,9 @@
             </div>
 
             <!-- Report button -->
-            <button id="map-report-btn" class="map-report-btn" onclick="openReportModal()">
-              <span>⚠</span><span>Report area</span>
-            </button>
+            <button id="map-report-btn" class="map-report-btn-small" onclick="openReportModal()" aria-label="Report this area">
+  <span>⚠</span>
+</button>
           </div>
 
           <!-- Route summary card (hidden until destination chosen) -->
@@ -300,7 +300,13 @@
           </div>
 
         </section><!-- /screen-map -->
-
+<!-- Recent trips list -->
+<div class="trips-section">
+  <h3 class="trips-section-title">Recent trips</h3>
+  <div id="trips-list" class="trips-list">
+    <p class="trips-empty">No trips yet. Set a destination above to start.</p>
+  </div>
+</div>
 
         <!-- ══════════════════════ SCREEN 4 — CHATBOT ═══════════════════════ -->
         <section id="screen-chatbot" class="screen" aria-label="ChatBot screen">

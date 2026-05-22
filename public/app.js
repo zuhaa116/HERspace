@@ -517,13 +517,11 @@ function initMap() {
     attributionControl: false,
   });
 
-  // Light, modern theme — CartoDB Voyager
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
     maxZoom: 19,
   }).addTo(leafletMap);
 
-  // Static origin (the user's current location for the demo)
   originMarker = L.marker(ORIGIN_LATLNG, {
     icon: L.divIcon({
       className: '',
@@ -534,7 +532,30 @@ function initMap() {
   }).addTo(leafletMap).bindTooltip('You are here', { direction: 'top' });
   originLatLng = ORIGIN_LATLNG;
 
-  // Click handler — for placing a report pin
+  // Try to get real GPS — if granted, move origin to actual location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const realLatLng = [pos.coords.latitude, pos.coords.longitude];
+        originLatLng = realLatLng;
+        if (originMarker) leafletMap.removeLayer(originMarker);
+        originMarker = L.marker(realLatLng, {
+          icon: L.divIcon({
+            className: '',
+            html: '<div class="map-pin pin-origin"></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
+          }),
+        }).addTo(leafletMap).bindTooltip('You are here', { direction: 'top' });
+        leafletMap.setView(realLatLng, 14);
+      },
+      (err) => {
+        console.log('GPS denied or unavailable, using Lahore center:', err.message);
+      },
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+    );
+  }
+
   leafletMap.on('click', (e) => {
     if (!reportPlacementMode) return;
     pendingReportLatLng = e.latlng;
@@ -546,15 +567,15 @@ function initMap() {
   });
 
   loadReports();
+  loadTrips();
 }
-
 function mapZoomIn() { if (leafletMap) leafletMap.zoomIn(); }
 function mapZoomOut() { if (leafletMap) leafletMap.zoomOut(); }
 
 /* ─── Reports — render as permanent red zones ─── */
 async function loadReports() {
   try {
-    const res = await fetch('/api/reports');
+    const res = await fetch('/api/reports?t=' + Date.now()); // bust cache
     const data = await res.json();
     allReports = data.reports || [];
     renderReports();
@@ -832,16 +853,19 @@ function tickTrip() {
   }
 }
 
-function arrivedTrip() {
+async function arrivedTrip() {
+  await saveTrip('completed');
   stopTrip();
-  alert('Great — glad you got there safely! 💚');
+  showToast('Great — glad you got there safely! 💚', 'success');
+  loadTrips();
 }
 
-function cancelTrip() {
+async function cancelTrip() {
   if (!confirm('Cancel this trip? The alarm will be turned off.')) return;
+  await saveTrip('cancelled');
   stopTrip();
+  loadTrips();
 }
-
 function stopTrip() {
   tripActive = false;
   if (tripTimer) { clearInterval(tripTimer); tripTimer = null; }
@@ -892,7 +916,58 @@ function alertEmergencyContact() {
   toast.hidden = false;
   setTimeout(() => { toast.hidden = true; }, 4500);
 }
+/* ─── Trip history (saved per user in Postgres) ─── */
+async function saveTrip(status) {
+  if (!routeData || !destinationLatLng) return;
+  const elapsedSec = (Date.now() - tripStartTime) / 1000;
+  try {
+    await fetch('/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination: (document.getElementById('destination-input')?.value || 'Trip').slice(0, 100),
+        originLat: originLatLng[0], originLng: originLatLng[1],
+        destLat: destinationLatLng[0], destLng: destinationLatLng[1],
+        durationSeconds: Math.round(elapsedSec),
+        distanceM: Math.round(routeData.distanceM || 0),
+        status,
+      }),
+    });
+  } catch (e) { console.error('saveTrip failed:', e); }
+}
 
+async function loadTrips() {
+  const listEl = document.getElementById('trips-list');
+  if (!listEl) return;
+  try {
+    const res = await fetch('/api/trips');
+    const data = await res.json();
+    const trips = data.trips || [];
+    if (!trips.length) {
+      listEl.innerHTML = '<p class="trips-empty">No trips yet. Set a destination above to start.</p>';
+      return;
+    }
+    listEl.innerHTML = trips.map(t => {
+      const mins = Math.round((t.durationSeconds || 0) / 60);
+      const km = ((t.distanceM || 0) / 1000).toFixed(1);
+      const days = Math.max(0, Math.floor((Date.now() - t.createdAt) / 86400000));
+      const ago = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days} days ago`;
+      const statusBadge = t.status === 'completed'
+        ? '<span class="trip-badge trip-badge-ok">✓ Arrived</span>'
+        : '<span class="trip-badge trip-badge-cancel">Cancelled</span>';
+      return `
+        <div class="trip-row">
+          <div class="trip-row-info">
+            <p class="trip-row-dest">${escapeHtml(t.destination)}</p>
+            <p class="trip-row-meta">${mins} min · ${km} km · ${ago}</p>
+          </div>
+          ${statusBadge}
+        </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('loadTrips failed:', e);
+  }
+}
 
 /* ─────────────────────────────────────────────────
    4. CHATBOT — STATE
