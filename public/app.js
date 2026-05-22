@@ -208,16 +208,32 @@ async function loadCompanies() {
   const loadingEl = document.getElementById('company-loading');
   const emptyEl = document.getElementById('company-empty');
 
-  // Safety: if any element is missing, the Community panel HTML hasn't loaded yet
   if (!listEl || !loadingEl || !emptyEl) {
-    console.error('Community panel elements missing — check app.html for #company-list, #company-loading, #company-empty');
+    console.error('Community panel elements missing');
     return;
   }
 
   refreshCvBannerFromUser();
   listEl.innerHTML = '';
   loadingEl.style.display = 'block';
-  emptyEl.hidden = true; }
+  emptyEl.hidden = true;
+
+  try {
+    const res = await fetch('/api/companies');
+    console.log('[loadCompanies] status', res.status);
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    console.log('[loadCompanies] got', data.companies?.length, 'companies');
+    allCompanies = data.companies || [];
+    companiesLoaded = true;
+    loadingEl.style.display = 'none';
+    renderCompanies(allCompanies);
+  } catch (err) {
+    console.error('[loadCompanies] error:', err);
+    loadingEl.style.display = 'none';
+    listEl.innerHTML = `<p class="company-error">Could not load companies. <a href="#" onclick="companiesLoaded=false;loadCompanies();return false;">Try again</a></p>`;
+  }
+}
 
 function renderCompanies(companies) {
   const listEl = document.getElementById('company-list');
