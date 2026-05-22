@@ -557,7 +557,7 @@ Return ONLY this JSON: {"matches":[{"score":N,"reason":"..."}, ... one per job i
           matchScore: matches[i]?.score ?? 0,
           matchReason: matches[i]?.reason ?? null,
         }))
-        .filter(c => c.matchScore >= 40) // drop poor matches
+       .filter(c => c.matchScore >= 25) // drop only obvious mismatches
         .sort((a, b) => b.matchScore - a.matchScore); // best first
 
       console.log(`[HerSpace] Ranked ${matches.length} jobs, kept ${companies.length} above threshold`);
