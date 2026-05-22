@@ -240,7 +240,11 @@ function renderCompanies(companies) {
   const emptyEl = document.getElementById('company-empty');
   listEl.innerHTML = '';
 
-  if (!companies.length) { emptyEl.hidden = false; return; }
+if (!companies.length) {
+  emptyEl.hidden = false;
+  emptyEl.innerHTML = '<p>No jobs matched your CV strongly enough this week. <a href="#" onclick="companiesLoaded=false;loadCompanies();return false;">Refresh</a> or try uploading a different CV.</p>';
+  return;
+}
   emptyEl.hidden = true;
 
   companies.forEach((c, idx) => {
@@ -264,7 +268,7 @@ function renderCompanies(companies) {
         <span class="badge-pill ${ratingClass}">${ratingNum.toFixed(1)} ★</span>
       </div>
       ${tagPills ? `<div class="badge-row" style="margin: 6px 0;">${tagPills}</div>` : ''}
-    ${c.matchReason ? `<p class="company-match-reason">✦ ${escapeHtml(c.matchReason)}</p>` : ''}
+  ${c.matchReason ? `<p class="company-match-reason">${c.matchScore ? `<strong>${c.matchScore}% match</strong> · ` : ''}${escapeHtml(c.matchReason)}</p>` : ''}
 ${c.quote ? `<p class="review-quote">"${escapeHtml(c.quote)}"</p>` : ''}
       <p class="review-meta">${c.reviewCount || 0} reviews · AI-suggested · Tap for details</p>
     `;

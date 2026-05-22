@@ -510,34 +510,62 @@ try {
   }));
 
   // ── Step 4: ask GPT for a match reason per job (only if we have a CV) ──
-  if (cvSnippet && companies.length > 0) {
-    try {
-      const summary = companies.map((c, i) => `${i + 1}. ${c.jobTitle} at ${c.name}`).join('\n');
-      const matchRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'user',
-            content: `User's CV:\n"""${cvSnippet}"""\n\nFor EACH of these ${companies.length} jobs, write ONE short sentence (under 90 chars) explaining why this role matches the user's CV. Return ONLY a JSON object: {"reasons":[".....","....."]} — one entry per job in order.\n\nJobs:\n${summary}`
-          }],
-          max_tokens: 800,
-          temperature: 0.5,
-          response_format: { type: 'json_object' },
-        }),
-      });
-      if (matchRes.ok) {
-        const md = await matchRes.json();
-        const raw = md.choices?.[0]?.message?.content?.trim() ?? '{}';
-        let parsed; try { parsed = JSON.parse(raw); } catch { parsed = {}; }
-        const reasons = Array.isArray(parsed.reasons) ? parsed.reasons : [];
-        companies = companies.map((c, i) => ({ ...c, matchReason: reasons[i] || null }));
-      }
-    } catch (e) {
-      console.error('[HerSpace] match reasoning failed:', e.message);
+  // ── Step 4: ask GPT to RANK + FILTER jobs based on CV match strength ──
+if (cvSnippet && companies.length > 0) {
+  try {
+    const summary = companies.map((c, i) =>
+      `${i + 1}. ${c.jobTitle} at ${c.name} (${c.industry || ''}) — ${(c.quote || '').slice(0, 150)}`
+    ).join('\n');
+
+    const rankRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{
+          role: 'user',
+          content: `User's CV:\n"""${cvSnippet}"""\n\nReview these ${companies.length} job listings. For EACH, decide:
+- score: 0-100 — how well does this role match the user's actual skills/background/interests in the CV?
+  • 70-100 = strong match (skills clearly align)
+  • 40-69 = partial match (some overlap but stretch)
+  • 0-39 = poor match (unrelated field or wrong level)
+- reason: ONE short sentence (under 90 chars) explaining the match (or why it's not one)
+
+Be strict — don't inflate scores. If a job is in a completely different field from the CV, give it a low score.
+
+Jobs:
+${summary}
+
+Return ONLY this JSON: {"matches":[{"score":N,"reason":"..."}, ... one per job in order]}`
+        }],
+        max_tokens: 1000,
+        temperature: 0.3,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (rankRes.ok) {
+      const md = await rankRes.json();
+      const raw = md.choices?.[0]?.message?.content?.trim() ?? '{}';
+      let parsed; try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+      const matches = Array.isArray(parsed.matches) ? parsed.matches : [];
+
+      // Attach scores and reasons, then filter + sort
+      companies = companies
+        .map((c, i) => ({
+          ...c,
+          matchScore: matches[i]?.score ?? 0,
+          matchReason: matches[i]?.reason ?? null,
+        }))
+        .filter(c => c.matchScore >= 40) // drop poor matches
+        .sort((a, b) => b.matchScore - a.matchScore); // best first
+
+      console.log(`[HerSpace] Ranked ${matches.length} jobs, kept ${companies.length} above threshold`);
     }
+  } catch (e) {
+    console.error('[HerSpace] ranking failed:', e.message);
   }
+}
 
   // ── Step 5: if JSearch returned nothing, fall back to AI-only mode ──
   if (companies.length === 0) {
