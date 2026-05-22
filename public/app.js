@@ -256,22 +256,30 @@ if (!companies.length) {
       return `<span class="badge-pill ${cls}">${escapeHtml(t)}</span>`;
     }).join('');
 
-    const card = document.createElement('article');
-    card.className = 'standard-card company-card';
-    card.setAttribute('tabindex', '0');
-    card.innerHTML = `
-      <div class="review-header">
-        <div>
-          <p class="review-company">${escapeHtml(c.name)}</p>
-          <p class="opp-meta">${escapeHtml(c.industry || '')}${c.locationNote ? ' · ' + escapeHtml(c.locationNote) : ''}</p>
-        </div>
-        <span class="badge-pill ${ratingClass}">${ratingNum.toFixed(1)} ★</span>
-      </div>
-      ${tagPills ? `<div class="badge-row" style="margin: 6px 0;">${tagPills}</div>` : ''}
-  ${c.matchReason ? `<p class="company-match-reason">${c.matchScore ? `<strong>${c.matchScore}% match</strong> · ` : ''}${escapeHtml(c.matchReason)}</p>` : ''}
-${c.quote ? `<p class="review-quote">"${escapeHtml(c.quote)}"</p>` : ''}
-      <p class="review-meta">${c.reviewCount || 0} reviews · AI-suggested · Tap for details</p>
-    `;
+ const score = c.matchScore || 0;
+const scoreClass = score >= 80 ? 'match-strong' : score >= 60 ? 'match-good' : 'match-ok';
+const scoreLabel = score >= 80 ? 'Excellent match' : score >= 60 ? 'Strong match' : 'Possible match';
+const isTopMatch = idx === 0 && score >= 70;
+
+const card = document.createElement('article');
+card.className = 'standard-card company-card' + (isTopMatch ? ' company-card-top' : '');
+card.setAttribute('tabindex', '0');
+card.innerHTML = `
+  ${isTopMatch ? `<div class="top-match-ribbon">★ Best match for you</div>` : ''}
+  <div class="review-header">
+    <div>
+      <p class="review-company">${escapeHtml(c.name)}</p>
+      <p class="opp-meta">${escapeHtml(c.industry || '')}${c.locationNote ? ' · ' + escapeHtml(c.locationNote) : ''}</p>
+    </div>
+    ${score > 0
+      ? `<span class="match-score-pill ${scoreClass}"><strong>${score}%</strong><span>match</span></span>`
+      : `<span class="badge-pill ${ratingClass}">${ratingNum.toFixed(1)} ★</span>`}
+  </div>
+  ${tagPills ? `<div class="badge-row" style="margin: 6px 0;">${tagPills}</div>` : ''}
+  ${c.matchReason ? `<p class="company-match-reason">✦ <strong>${scoreLabel}</strong> · ${escapeHtml(c.matchReason)}</p>` : ''}
+  ${c.quote ? `<p class="review-quote">"${escapeHtml(c.quote)}"</p>` : ''}
+  <p class="review-meta">${c.reviewCount || 0} reviews · AI-suggested · Tap for details</p>
+`;
     card.addEventListener('click', () => openCompanyModal(idx));
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openCompanyModal(idx); });
     listEl.appendChild(card);

@@ -2866,3 +2866,42 @@ body {
   border: 0.5px solid #D4CFC0;
 }
 .toast-info .toast-icon { background: #6B6347; color: #FFF; }
+/* Match score pill — replaces the rating star pill when CV match is active */
+.match-score-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.match-score-pill strong { font-size: 13px; font-weight: 700; }
+.match-score-pill span { font-size: 9px; font-weight: 500; opacity: 0.85; }
+
+.match-strong { background: #EDF2EB; color: #4A6B45; border: 0.5px solid #C9D6C4; }
+.match-good   { background: #F5EDEC; color: #7F2020; border: 0.5px solid #E8C5C5; }
+.match-ok     { background: #F0EEE5; color: #6B6347; border: 0.5px solid #D4CFC0; }
+
+/* Best-match ribbon for #1 card */
+.company-card-top {
+  border-color: #7F2020 !important;
+  box-shadow: 0 4px 16px rgba(127, 32, 32, 0.12);
+  position: relative;
+}
+.top-match-ribbon {
+  background: #7F2020;
+  color: #F5F2E8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  display: inline-block;
+  margin: -4px 0 8px;
+}
