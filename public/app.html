@@ -233,17 +233,14 @@
 
             <!-- Destination search overlay -->
             <div class="map-overlay-search">
-              <div class="map-search-pill" style="pointer-events:auto;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5F2E8" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input id="destination-input" type="search" class="map-search-input"
-                  placeholder="Where to? e.g. Liberty Market" />
-                <button id="destination-search-btn" class="map-search-go" onclick="searchDestination()"
-                  aria-label="Search">→</button>
-              </div>
+           <div class="map-search-pill" style="pointer-events:auto;">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5F2E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  <input id="destination-input" type="text" class="map-search-input" placeholder="Where to? e.g. Liberty Market" autocomplete="off" oninput="onDestInput()" onkeydown="onDestKey(event)" />
+  <button type="button" id="destination-search-btn" class="map-search-go" onclick="searchDestination()" aria-label="Search">→</button>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="dest-suggestions" class="dest-suggestions" hidden></div>
             </div>
 
             <!-- Zoom controls -->

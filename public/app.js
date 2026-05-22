@@ -661,26 +661,99 @@ async function submitReport() {
 }
 
 /* ─── Destination search & routing ─── */
-async function searchDestination() {
-  const q = document.getElementById('destination-input').value.trim();
-  if (!q) return;
+/* ─── Destination autocomplete ─── */
+let destSearchTimer = null;
+let destSuggestions = [];
+let destActiveIndex = -1;
 
-  // Geocode using OSM Nominatim — biased to Lahore for the demo
+function onDestInput() {
+  const q = document.getElementById('destination-input').value.trim();
+  const dropdown = document.getElementById('dest-suggestions');
+  if (q.length < 2) {
+    dropdown.hidden = true;
+    destSuggestions = [];
+    return;
+  }
+  clearTimeout(destSearchTimer);
+  destSearchTimer = setTimeout(() => fetchDestSuggestions(q), 250);
+}
+
+async function fetchDestSuggestions(q) {
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ', Lahore, Pakistan')}&format=json&limit=1`);
+    const cityHint = (currentUser && currentUser.city) ? currentUser.city : 'Lahore';
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ', ' + cityHint + ', Pakistan')}&format=json&limit=6&addressdetails=1`);
     const results = await res.json();
-    if (!results.length) {
-      alert('Could not find that place. Try another name.');
-      return;
-    }
-    const lat = parseFloat(results[0].lat);
-    const lng = parseFloat(results[0].lon);
-    setDestination([lat, lng], results[0].display_name);
+    destSuggestions = results.map(r => ({
+      label: r.display_name,
+      short: r.name || r.display_name.split(',')[0],
+      lat: parseFloat(r.lat),
+      lng: parseFloat(r.lon),
+    }));
+    destActiveIndex = -1;
+    renderDestSuggestions();
   } catch (e) {
-    alert('Could not search. Check your connection.');
+    console.error('Suggestion fetch failed:', e);
   }
 }
 
+function renderDestSuggestions() {
+  const dropdown = document.getElementById('dest-suggestions');
+  if (!destSuggestions.length) { dropdown.hidden = true; return; }
+  dropdown.innerHTML = destSuggestions.map((s, i) => `
+    <div class="dest-suggestion ${i === destActiveIndex ? 'active' : ''}" data-idx="${i}" onclick="pickDestSuggestion(${i})">
+      <div class="dest-suggestion-icon">📍</div>
+      <div class="dest-suggestion-text">
+        <p class="dest-suggestion-name">${escapeHtml(s.short)}</p>
+        <p class="dest-suggestion-full">${escapeHtml(s.label.slice(0, 80))}</p>
+      </div>
+    </div>
+  `).join('');
+  dropdown.hidden = false;
+}
+
+function pickDestSuggestion(idx) {
+  const s = destSuggestions[idx];
+  if (!s) return;
+  document.getElementById('destination-input').value = s.short;
+  document.getElementById('dest-suggestions').hidden = true;
+  destSuggestions = [];
+  setDestination([s.lat, s.lng], s.short);
+}
+
+function onDestKey(e) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    destActiveIndex = Math.min(destSuggestions.length - 1, destActiveIndex + 1);
+    renderDestSuggestions();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    destActiveIndex = Math.max(-1, destActiveIndex - 1);
+    renderDestSuggestions();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (destActiveIndex >= 0 && destSuggestions[destActiveIndex]) {
+      pickDestSuggestion(destActiveIndex);
+    } else {
+      searchDestination();
+    }
+  } else if (e.key === 'Escape') {
+    document.getElementById('dest-suggestions').hidden = true;
+  }
+}
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('dest-suggestions');
+  const input = document.getElementById('destination-input');
+  if (!dropdown || !input) return;
+  if (!dropdown.contains(e.target) && e.target !== input) dropdown.hidden = true;
+});
+
+// Expose globally for onclick handlers
+window.onDestInput = onDestInput;
+window.onDestKey = onDestKey;
+window.pickDestSuggestion = pickDestSuggestion;
+window.searchDestination = searchDestination;
 async function setDestination(latlng, label) {
   destinationLatLng = latlng;
   if (destinationMarker) leafletMap.removeLayer(destinationMarker);

@@ -3001,3 +3001,53 @@ body {
 }
 .trip-badge-ok { background: #EDF2EB; color: #4A6B45; }
 .trip-badge-cancel { background: #F0EEE5; color: #6B6347; }
+/* Destination autocomplete dropdown */
+.dest-suggestions {
+  position: absolute;
+  top: 50px;
+  left: 14px;
+  right: 14px;
+  z-index: 2000;
+  background: #FFFFFF;
+  border: 0.5px solid #D4CFC0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.dest-suggestions::-webkit-scrollbar { display: none; }
+
+.dest-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 0.5px solid #F0EEE5;
+  transition: background 0.12s;
+}
+.dest-suggestion:last-child { border-bottom: 0; }
+.dest-suggestion:hover, .dest-suggestion.active { background: #F5EDEC; }
+
+.dest-suggestion-icon { font-size: 14px; flex-shrink: 0; }
+.dest-suggestion-text { flex: 1; min-width: 0; }
+.dest-suggestion-name {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #3D2B2B;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dest-suggestion-full {
+  margin: 1px 0 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: #A09880;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
