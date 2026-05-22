@@ -1180,3 +1180,64 @@ function dismissToast(toast) {
   toast.classList.add('toast-out');
   setTimeout(() => toast.remove(), 300);
 }
+// Defensive: define onCvUpload at global scope if it isn't already
+if (typeof window.onCvUpload !== 'function') {
+  window.onCvUpload = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const banner = document.getElementById('cv-banner');
+    const btn = document.getElementById('cv-banner-btn');
+    const titleEl = document.getElementById('cv-banner-title');
+    const subEl = document.getElementById('cv-banner-sub');
+
+    const loadingToast = showToast(`Uploading ${file.name}…`, 'loading');
+    btn.disabled = true;
+    btn.textContent = 'Uploading…';
+    titleEl.textContent = 'Reading your CV…';
+    subEl.textContent = 'AI is matching jobs to your skills.';
+
+    const form = new FormData();
+    form.append('cv', file);
+
+    try {
+      const res = await fetch('/api/cv/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      dismissToast(loadingToast);
+
+      if (!res.ok) {
+        const errMsg = data.error || 'Try a different file.';
+        showToast(errMsg, 'error');
+        titleEl.textContent = 'CV upload failed';
+        subEl.textContent = errMsg.slice(0, 60);
+        btn.disabled = false;
+        btn.textContent = 'Try again';
+        return;
+      }
+
+      showToast('CV uploaded — matching jobs now', 'success');
+      banner.classList.add('cv-banner-success');
+      titleEl.textContent = '✓ CV uploaded — matching jobs to you';
+      subEl.textContent = `${file.name} · Tap to replace`;
+      btn.textContent = 'Replace';
+      btn.disabled = false;
+
+      companiesLoaded = false;
+      const matchingToast = showToast('AI is finding new matches…', 'loading');
+      await loadCompanies();
+      dismissToast(matchingToast);
+      showToast('Found ' + (allCompanies.length || 0) + ' matched jobs', 'success');
+    } catch (err) {
+      dismissToast(loadingToast);
+      showToast('Could not reach the server', 'error');
+      titleEl.textContent = 'Upload failed';
+      subEl.textContent = 'Check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+    }
+  };
+}
+// Make sure onCvUpload is globally accessible from HTML
+if (typeof onCvUpload === 'function') {
+  window.onCvUpload = onCvUpload;
+}
