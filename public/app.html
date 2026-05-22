@@ -220,6 +220,7 @@
         </section><!-- /screen-community -->
 
         <!-- ═══════════════════ SCREEN 3 — SAFE MAP ════════════════════════ -->
+      <!-- ═══════════════════ SCREEN 3 — SAFE MAP ════════════════════════ -->
         <section id="screen-map" class="screen" aria-label="Safe map screen">
 
           <header class="screen-header sage-header">
@@ -232,15 +233,14 @@
             <div id="safe-map" class="map-container"></div>
 
             <!-- Destination search overlay -->
-      <div class="map-search-pill" style="pointer-events:auto;">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5F2E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  <input id="destination-input" type="text" class="map-search-input" placeholder="Where to? e.g. Liberty Market" autocomplete="off" oninput="onDestInput()" onkeydown="onDestKey(event)" />
-  <button type="button" id="destination-search-btn" class="map-search-go" onclick="searchDestination()" aria-label="Search">→</button>
-</div>
-
-<!-- Autocomplete dropdown -->
-<div id="dest-suggestions" class="dest-suggestions" hidden></div>
+            <div class="map-search-pill" style="pointer-events:auto;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5F2E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="destination-input" type="text" class="map-search-input" placeholder="Where to? e.g. Liberty Market" autocomplete="off" oninput="onDestInput()" onkeydown="onDestKey(event)" />
+              <button type="button" id="destination-search-btn" class="map-search-go" onclick="searchDestination()" aria-label="Search">→</button>
             </div>
+
+            <!-- Autocomplete dropdown -->
+            <div id="dest-suggestions" class="dest-suggestions" hidden></div>
 
             <!-- Zoom controls -->
             <div class="map-zoom-controls" style="pointer-events:none;">
@@ -256,8 +256,8 @@
 
             <!-- Report button -->
             <button id="map-report-btn" class="map-report-btn-small" onclick="openReportModal()" aria-label="Report this area">
-  <span>⚠</span>
-</button>
+              <span>⚠</span>
+            </button>
           </div>
 
           <!-- Route summary card (hidden until destination chosen) -->
@@ -267,8 +267,7 @@
                 <p class="route-summary-label">Safest walking route</p>
                 <p id="route-summary-text" class="route-summary-text">— mins · — km</p>
               </div>
-              <button id="route-clear-btn" class="route-clear-btn" onclick="clearRoute()"
-                aria-label="Clear route">×</button>
+              <button id="route-clear-btn" class="route-clear-btn" onclick="clearRoute()" aria-label="Clear route">×</button>
             </div>
             <p id="route-warning" class="route-warning" hidden></p>
             <button id="route-start-btn" class="route-start-btn" onclick="startTrip()">Start trip</button>
@@ -295,14 +294,15 @@
             </div>
           </div>
 
+          <!-- Recent trips list -->
+          <div class="trips-section scroll-area">
+            <h3 class="trips-section-title">Recent trips</h3>
+            <div id="trips-list" class="trips-list">
+              <p class="trips-empty">No trips yet. Set a destination above to start.</p>
+            </div>
+          </div>
+
         </section><!-- /screen-map -->
-<!-- Recent trips list -->
-<div class="trips-section">
-  <h3 class="trips-section-title">Recent trips</h3>
-  <div id="trips-list" class="trips-list">
-    <p class="trips-empty">No trips yet. Set a destination above to start.</p>
-  </div>
-</div>
 
         <!-- ══════════════════════ SCREEN 4 — CHATBOT ═══════════════════════ -->
         <section id="screen-chatbot" class="screen" aria-label="ChatBot screen">
@@ -623,47 +623,7 @@
         </div>
       </div>
       <!-- Report Modal (if not already present) -->
-      <div id="report-modal" class="report-modal" aria-hidden="true">
-        <div class="report-modal-backdrop" onclick="closeReportModal()"></div>
-        <div class="report-modal-card">
-          <div class="report-modal-header">
-            <h3>Report an unsafe area</h3>
-            <button class="report-modal-close" onclick="closeReportModal()">×</button>
-          </div>
-          <p class="report-modal-help">Tap the map to place a pin, then describe what makes this area unsafe. Reports
-            are reviewed by AI before being posted.</p>
-          <div class="report-field">
-            <label class="report-label">Location</label>
-            <p id="report-location-text" class="report-location-text">Tap the map to choose…</p>
-          </div>
-          <div class="report-field">
-            <label class="report-label" for="report-category">Category</label>
-            <select id="report-category" class="report-select">
-              <option value="dimly_lit">Dimly lit / no street lights</option>
-              <option value="crowd">Crowd / loitering</option>
-              <option value="harassment">Harassment incidents</option>
-              <option value="infrastructure">Poor infrastructure</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="report-field">
-            <label class="report-label" for="report-time">Time of day</label>
-            <select id="report-time" class="report-select">
-              <option value="any">Any time</option>
-              <option value="evening">Evening</option>
-              <option value="night" selected>Night</option>
-            </select>
-          </div>
-          <div class="report-field">
-            <label class="report-label" for="report-description">What's unsafe here?</label>
-            <textarea id="report-description" class="report-textarea" rows="3" maxlength="500"
-              placeholder="e.g. Street lights broken, groups loitering after 8pm."></textarea>
-          </div>
-          <p id="report-error" class="report-error" hidden></p>
-          <button id="report-submit" class="report-submit-btn" onclick="submitReport()">Submit report</button>
-        </div>
-      </div>
-
+     
       <!-- Alarm Overlay -->
       <div id="alarm-overlay" class="alarm-overlay" hidden>
         <div class="alarm-card">
