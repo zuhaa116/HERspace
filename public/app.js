@@ -754,6 +754,26 @@ window.onDestInput = onDestInput;
 window.onDestKey = onDestKey;
 window.pickDestSuggestion = pickDestSuggestion;
 window.searchDestination = searchDestination;
+async function searchDestination() {
+  const q = document.getElementById('destination-input').value.trim();
+  if (!q) return;
+
+  try {
+    const cityHint = (currentUser && currentUser.city) ? currentUser.city : 'Lahore';
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ', ' + cityHint + ', Pakistan')}&format=json&limit=1`);
+    const results = await res.json();
+    if (!results.length) {
+      alert('Could not find that place. Try another name.');
+      return;
+    }
+    const lat = parseFloat(results[0].lat);
+    const lng = parseFloat(results[0].lon);
+    document.getElementById('dest-suggestions').hidden = true;
+    setDestination([lat, lng], results[0].display_name);
+  } catch (e) {
+    alert('Could not search. Check your connection.');
+  }
+}
 async function setDestination(latlng, label) {
   destinationLatLng = latlng;
   if (destinationMarker) leafletMap.removeLayer(destinationMarker);
