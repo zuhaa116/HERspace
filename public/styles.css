@@ -3051,3 +3051,63 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* ── Map screen forced layout ── */
+#screen-map {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+#screen-map.active { display: flex; }
+
+#screen-map .map-outer-wrapper {
+  position: relative !important;
+  flex: 0 0 auto;
+  height: 320px !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+#screen-map #safe-map {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  background: #E8E5D8;
+}
+
+/* Force search pill to overlay AT THE TOP of the map, not below it */
+#screen-map .map-search-pill {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  right: 10px !important;
+  z-index: 1100 !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(28, 34, 48, 0.92);
+  border-radius: 22px;
+  pointer-events: auto;
+}
+
+#screen-map .map-search-input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #F5F2E8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+}
+#screen-map .map-search-input::placeholder { color: rgba(245,242,232,0.55); }
+
+/* Recent trips section sits below the map, inside the screen */
+#screen-map .trips-section {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 16px;
+  background: #FAFAF5;
+  border-top: 0.5px solid #E8E3D6;
+}

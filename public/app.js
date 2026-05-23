@@ -534,6 +534,7 @@ function initMap() {
 
   // Try to get real GPS — if granted, move origin to actual location
   if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(p => console.log('GPS OK:', p.coords.latitude, p.coords.longitude), e => console.log('GPS DENIED:', e.message))
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const realLatLng = [pos.coords.latitude, pos.coords.longitude];
