@@ -379,43 +379,57 @@ if (typeof escapeHtml !== 'function') {
   window.escapeHtml = function (s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   };
+}
 
-  /* ─── MENTORS ─── */
-  let allMentors = [];
-  let mentorsLoaded = false;
-
-  async function loadMentors() {
+/* ─── MENTORS ─── */
+async function loadMentors() {
   if (mentorsLoaded) return;
   const listEl = document.getElementById('mentor-list');
   const loadingEl = document.getElementById('mentor-loading');
   const emptyEl = document.getElementById('mentor-empty');
 
   if (!listEl || !loadingEl || !emptyEl) {
-    console.error('Mentor panel elements missing — check app.html for #mentor-list, #mentor-loading, #mentor-empty');
+    console.error('Mentor panel elements missing');
     return;
   }
 
   listEl.innerHTML = '';
+  loadingEl.style.display = 'block';
+  emptyEl.hidden = true;
 
-  function renderMentors(mentors) {
-    const listEl = document.getElementById('mentor-list');
-    const emptyEl = document.getElementById('mentor-empty');
-    listEl.innerHTML = '';
+  try {
+    const res = await fetch('/api/mentors');
+    if (!res.ok) throw new Error('Server error');
+    const data = await res.json();
+    allMentors = data.mentors || [];
+    mentorsLoaded = true;
+    loadingEl.style.display = 'none';
+    renderMentors(allMentors);
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    listEl.innerHTML = `<p class="company-error">Could not load mentors. <a href="#" onclick="mentorsLoaded=false;loadMentors();return false;">Try again</a></p>`;
+  }
+}
 
-    if (!mentors.length) { emptyEl.hidden = false; return; }
-    emptyEl.hidden = true;
+function renderMentors(mentors) {
+  const listEl = document.getElementById('mentor-list');
+  const emptyEl = document.getElementById('mentor-empty');
+  listEl.innerHTML = '';
 
-    mentors.forEach((m, idx) => {
-      const rating = parseFloat(m.rating) || 0;
-      const initials = (m.name || 'M').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-      const expertiseRow = (m.expertise || []).slice(0, 3).map(t =>
-        `<span class="badge-pill badge-sage">${escapeHtml(t)}</span>`
-      ).join('');
+  if (!mentors.length) { emptyEl.hidden = false; return; }
+  emptyEl.hidden = true;
 
-      const card = document.createElement('article');
-      card.className = 'standard-card company-card mentor-card';
-      card.setAttribute('tabindex', '0');
-      card.innerHTML = `
+  mentors.forEach((m, idx) => {
+    const rating = parseFloat(m.rating) || 0;
+    const initials = (m.name || 'M').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const expertiseRow = (m.expertise || []).slice(0, 3).map(t =>
+      `<span class="badge-pill badge-sage">${escapeHtml(t)}</span>`
+    ).join('');
+
+    const card = document.createElement('article');
+    card.className = 'standard-card company-card mentor-card';
+    card.setAttribute('tabindex', '0');
+    card.innerHTML = `
       <div class="mentor-card-top">
         <div class="mentor-avatar">${escapeHtml(initials)}</div>
         <div class="mentor-card-name-wrap">
@@ -427,51 +441,50 @@ if (typeof escapeHtml !== 'function') {
       ${expertiseRow ? `<div class="badge-row" style="margin: 6px 0;">${expertiseRow}</div>` : ''}
       <p class="review-meta">${m.yearsExperience || 0} yrs exp · ${m.mentees || 0} mentees · Tap for details</p>
     `;
-      card.addEventListener('click', () => openMentorModal(idx));
-      card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openMentorModal(idx); });
-      listEl.appendChild(card);
-    });
-  }
+    card.addEventListener('click', () => openMentorModal(idx));
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openMentorModal(idx); });
+    listEl.appendChild(card);
+  });
+}
 
-  function openMentorModal(idx) {
-    const m = allMentors[idx];
-    if (!m) return;
+function openMentorModal(idx) {
+  const m = allMentors[idx];
+  if (!m) return;
 
-    const initials = (m.name || 'M').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-    document.getElementById('mm-avatar').textContent = initials;
-    document.getElementById('mm-name').textContent = m.name || 'Mentor';
-    document.getElementById('mm-title').textContent = `${m.title || ''}${m.company ? ' · ' + m.company : ''}`;
+  const initials = (m.name || 'M').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('mm-avatar').textContent = initials;
+  document.getElementById('mm-name').textContent = m.name || 'Mentor';
+  document.getElementById('mm-title').textContent = `${m.title || ''}${m.company ? ' · ' + m.company : ''}`;
 
-    const rating = parseFloat(m.rating) || 0;
-    document.getElementById('mm-rating').textContent = `${rating.toFixed(1)} ★`;
-    document.getElementById('mm-exp').textContent = `${m.yearsExperience || 0} yrs experience`;
+  const rating = parseFloat(m.rating) || 0;
+  document.getElementById('mm-rating').textContent = `${rating.toFixed(1)} ★`;
+  document.getElementById('mm-exp').textContent = `${m.yearsExperience || 0} yrs experience`;
 
-    document.getElementById('mm-bio').textContent = m.bio ? `"${m.bio}"` : '';
+  document.getElementById('mm-bio').textContent = m.bio ? `"${m.bio}"` : '';
 
-    const expertEl = document.getElementById('mm-expertise');
-    expertEl.innerHTML = (m.expertise || []).map(t => `<span class="badge-pill badge-sage">${escapeHtml(t)}</span>`).join('') || '<p class="company-modal-empty">No expertise tags listed.</p>';
+  const expertEl = document.getElementById('mm-expertise');
+  expertEl.innerHTML = (m.expertise || []).map(t => `<span class="badge-pill badge-sage">${escapeHtml(t)}</span>`).join('') || '<p class="company-modal-empty">No expertise tags listed.</p>';
 
-    document.getElementById('mm-availability').textContent = m.availability || 'On request';
-    document.getElementById('mm-mentees').textContent = `${m.mentees || 0} mentees so far`;
+  document.getElementById('mm-availability').textContent = m.availability || 'On request';
+  document.getElementById('mm-mentees').textContent = `${m.mentees || 0} mentees so far`;
 
-    document.getElementById('mm-languages').textContent = (m.languages || []).join(' · ') || 'Not specified';
+  document.getElementById('mm-languages').textContent = (m.languages || []).join(' · ') || 'Not specified';
 
-    const contactEl = document.getElementById('mm-contact');
-    const parts = [];
-    if (m.linkedin) parts.push(`<a class="contact-row" href="${escapeAttr(m.linkedin.startsWith('http') ? m.linkedin : 'https://' + m.linkedin)}" target="_blank" rel="noopener"><span class="contact-icon">in</span><span>${escapeHtml(m.linkedin)}</span></a>`);
-    if (m.email) parts.push(`<a class="contact-row" href="mailto:${escapeAttr(m.email)}"><span class="contact-icon">✉</span><span>${escapeHtml(m.email)}</span></a>`);
-    contactEl.innerHTML = parts.length ? parts.join('') : '<p class="company-modal-empty">No contact details — connect after sign-up.</p>';
+  const contactEl = document.getElementById('mm-contact');
+  const parts = [];
+  if (m.linkedin) parts.push(`<a class="contact-row" href="${escapeAttr(m.linkedin.startsWith('http') ? m.linkedin : 'https://' + m.linkedin)}" target="_blank" rel="noopener"><span class="contact-icon">in</span><span>${escapeHtml(m.linkedin)}</span></a>`);
+  if (m.email) parts.push(`<a class="contact-row" href="mailto:${escapeAttr(m.email)}"><span class="contact-icon">✉</span><span>${escapeHtml(m.email)}</span></a>`);
+  contactEl.innerHTML = parts.length ? parts.join('') : '<p class="company-modal-empty">No contact details — connect after sign-up.</p>';
 
-    const modal = document.getElementById('mentor-modal');
-    modal.setAttribute('aria-hidden', 'false');
-    modal.classList.add('active');
-  }
+  const modal = document.getElementById('mentor-modal');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('active');
+}
 
-  function closeMentorModal() {
-    const modal = document.getElementById('mentor-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.classList.remove('active');
-  }
+function closeMentorModal() {
+  const modal = document.getElementById('mentor-modal');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.classList.remove('active');
 }
 
 /* ─────────────────────────────────────────────────
@@ -1325,18 +1338,8 @@ function refreshCvBannerFromUser() {
 }
 
 // On load, show "✓ CV uploaded" state if the user already has one
-function refreshCvBannerFromUser() {
-  if (!currentUser || !currentUser.cvFilename) return;
-  const banner = document.getElementById('cv-banner');
-  const btn = document.getElementById('cv-banner-btn');
-  const titleEl = document.getElementById('cv-banner-title');
-  const subEl = document.getElementById('cv-banner-sub');
-  if (!banner) return;
-  banner.classList.add('cv-banner-success');
-  titleEl.textContent = '✓ CV uploaded — matching jobs to you';
-  subEl.textContent = 'Tap Replace to upload a new one.';
- btn.textContent = 'Replace';
-}}
+
+
 /* ─── Toast notifications ─── */
 function showToast(message, type) {
   const container = document.getElementById('toast-container');
