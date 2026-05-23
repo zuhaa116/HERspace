@@ -261,17 +261,43 @@
           </div>
 
           <!-- Route summary card (hidden until destination chosen) -->
-          <div id="route-summary" class="route-summary" hidden>
-            <div class="route-summary-top">
-              <div>
-                <p class="route-summary-label">Safest walking route</p>
-                <p id="route-summary-text" class="route-summary-text">— mins · — km</p>
-              </div>
-              <button id="route-clear-btn" class="route-clear-btn" onclick="clearRoute()" aria-label="Clear route">×</button>
-            </div>
-            <p id="route-warning" class="route-warning" hidden></p>
-            <button id="route-start-btn" class="route-start-btn" onclick="startTrip()">Start trip</button>
-          </div>
+        <!-- Route summary card (hidden until destination chosen) -->
+<div id="route-summary" class="route-summary" hidden>
+  <div class="route-summary-top">
+    <div>
+      <p class="route-summary-label">Safest route</p>
+      <p id="route-summary-text" class="route-summary-text">— mins · — km</p>
+    </div>
+    <button id="route-clear-btn" class="route-clear-btn" onclick="clearRoute()" aria-label="Clear route">×</button>
+  </div>
+
+  <!-- Transport mode selector -->
+  <div class="mode-selector" role="radiogroup" aria-label="Transport mode">
+    <button class="mode-btn mode-btn-active" data-mode="walk" onclick="selectMode('walk')" aria-pressed="true">
+      <span class="mode-icon">🚶</span>
+      <span class="mode-label">Walk</span>
+      <span class="mode-time" id="mode-time-walk">—</span>
+    </button>
+    <button class="mode-btn" data-mode="bike" onclick="selectMode('bike')" aria-pressed="false">
+      <span class="mode-icon">🚴</span>
+      <span class="mode-label">Bike</span>
+      <span class="mode-time" id="mode-time-bike">—</span>
+    </button>
+    <button class="mode-btn" data-mode="rickshaw" onclick="selectMode('rickshaw')" aria-pressed="false">
+      <span class="mode-icon">🛺</span>
+      <span class="mode-label">Rickshaw</span>
+      <span class="mode-time" id="mode-time-rickshaw">—</span>
+    </button>
+    <button class="mode-btn" data-mode="car" onclick="selectMode('car')" aria-pressed="false">
+      <span class="mode-icon">🚗</span>
+      <span class="mode-label">Car</span>
+      <span class="mode-time" id="mode-time-car">—</span>
+    </button>
+  </div>
+
+  <p id="route-warning" class="route-warning" hidden></p>
+  <button id="route-start-btn" class="route-start-btn" onclick="startTrip()">Start trip</button>
+</div>
 
           <!-- Live trip card (hidden until trip starts) -->
           <div id="trip-card" class="trip-card" hidden>

@@ -502,7 +502,8 @@ let originLatLng = null;
 let destinationLatLng = null;
 let routeLayer = null;
 let routeData = null; // { coords, distanceM, expectedSeconds }
-
+let currentMode = 'walk'; // walk | bike | rickshaw | car
+let modeEstimates = { walk: null, bike: null, rickshaw: null, car: null };
 // Trip state
 let tripActive = false;
 let tripTimer = null;
@@ -795,61 +796,105 @@ async function setDestination(latlng, label) {
     icon: L.divIcon({ className: '', html: '<div class="map-pin pin-destination">📍</div>', iconSize: [22, 22], iconAnchor: [11, 11] }),
   }).addTo(leafletMap).bindTooltip(label || 'Destination', { direction: 'top' });
 
-  // Fit map to show both points
   leafletMap.fitBounds([originLatLng, latlng], { padding: [40, 40] });
 
-  // Fetch walking route from OSRM
-  await fetchRoute();
+  // Compute estimates for all 4 modes in parallel
+  await fetchAllRouteEstimates();
 }
 
-async function fetchRoute() {
+async function fetchAllRouteEstimates() {
   if (!originLatLng || !destinationLatLng) return;
-  const url = `https://router.project-osrm.org/route/v1/foot/${originLatLng[1]},${originLatLng[0]};${destinationLatLng[1]},${destinationLatLng[0]}?overview=full&geometries=geojson`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data.routes || !data.routes.length) {
-      document.getElementById('route-summary-text').textContent = 'No route found.';
-      return;
-    }
-    const route = data.routes[0];
-    const coords = route.geometry.coordinates.map(c => [c[1], c[0]]); // [lat,lng]
 
-    routeData = {
-      coords,
-      distanceM: route.distance,
-      expectedSeconds: route.duration,
-    };
+  // OSRM profiles: foot (walking), bike (cycling), driving (car/rickshaw share roads)
+  const fetchOSRM = async (profile) => {
+    const url = `https://router.project-osrm.org/route/v1/${profile}/${originLatLng[1]},${originLatLng[0]};${destinationLatLng[1]},${destinationLatLng[0]}?overview=full&geometries=geojson`;
+    try {
+      const r = await fetch(url);
+      const d = await r.json();
+      return d.routes && d.routes[0] ? d.routes[0] : null;
+    } catch (e) { return null; }
+  };
 
-    // Check if route passes near any red zones (within 200m)
-    const dangerCount = coords.filter(c =>
-      allReports.some(r => metresBetween({ lat: c[0], lng: c[1] }, r) < 200)
-    ).length;
-    const dangerRatio = dangerCount / coords.length;
+  const [walkRoute, bikeRoute, drivingRoute] = await Promise.all([
+    fetchOSRM('foot'),
+    fetchOSRM('bike'),
+    fetchOSRM('driving'),
+  ]);
 
-    // Draw the route
-    if (routeLayer) leafletMap.removeLayer(routeLayer);
-    routeLayer = L.polyline(coords, {
-      color: dangerRatio > 0.15 ? '#E89B4B' : '#4A6B45',
-      weight: 5, opacity: 0.85,
-    }).addTo(leafletMap);
+  // Walk and bike: use OSRM duration directly
+  // Car: driving duration, but adjust for Pakistani city traffic (~70% of OSRM's optimistic estimate is more realistic, so multiply by 1.4)
+  // Rickshaw: same road but slower than car — multiply driving duration by 1.7
+  modeEstimates = {
+    walk: walkRoute ? { coords: walkRoute.geometry.coordinates.map(c => [c[1], c[0]]), distanceM: walkRoute.distance, expectedSeconds: walkRoute.duration } : null,
+    bike: bikeRoute ? { coords: bikeRoute.geometry.coordinates.map(c => [c[1], c[0]]), distanceM: bikeRoute.distance, expectedSeconds: bikeRoute.duration } : null,
+    car: drivingRoute ? { coords: drivingRoute.geometry.coordinates.map(c => [c[1], c[0]]), distanceM: drivingRoute.distance, expectedSeconds: drivingRoute.duration * 1.4 } : null,
+    rickshaw: drivingRoute ? { coords: drivingRoute.geometry.coordinates.map(c => [c[1], c[0]]), distanceM: drivingRoute.distance, expectedSeconds: drivingRoute.duration * 1.7 } : null,
+  };
 
-    // Update summary card
-    const mins = Math.round(route.duration / 60);
-    const km = (route.distance / 1000).toFixed(1);
-    document.getElementById('route-summary-text').textContent = `${mins} min · ${km} km walking`;
-    const warn = document.getElementById('route-warning');
-    if (dangerRatio > 0.15) {
-      warn.textContent = `⚠ This route passes through ${dangerCount > 5 ? 'several' : 'a'} reported area${dangerCount > 1 ? 's' : ''}. Stay alert.`;
-      warn.hidden = false;
-    } else {
-      warn.textContent = '✓ Route avoids all reported zones.';
-      warn.hidden = false;
-      warn.className = 'route-warning route-warning-safe';
-    }
-    document.getElementById('route-summary').hidden = false;
-  } catch (e) {
-    console.error('Routing error', e);
+  // Update the time labels on each mode button
+  ['walk', 'bike', 'rickshaw', 'car'].forEach(m => {
+    const el = document.getElementById('mode-time-' + m);
+    if (!el) return;
+    const est = modeEstimates[m];
+    el.textContent = est ? Math.max(1, Math.round(est.expectedSeconds / 60)) + ' min' : '—';
+  });
+
+  // Pick the currently-selected mode (defaults to walk) and render it
+  selectMode(currentMode);
+  document.getElementById('route-summary').hidden = false;
+}
+
+function selectMode(mode) {
+  currentMode = mode;
+
+  // Update button styles
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    const active = b.dataset.mode === mode;
+    b.classList.toggle('mode-btn-active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+
+  const est = modeEstimates[mode];
+  if (!est) {
+    document.getElementById('route-summary-text').textContent = 'Route unavailable.';
+    return;
+  }
+
+  routeData = est;
+  const coords = est.coords;
+
+  // Check for danger zones (only matters for walking really, but flag all)
+  const dangerCount = coords.filter(c =>
+    allReports.some(r => metresBetween({ lat: c[0], lng: c[1] }, r) < 200)
+  ).length;
+  const dangerRatio = dangerCount / coords.length;
+
+  // Draw the route — line style depends on mode
+  if (routeLayer) leafletMap.removeLayer(routeLayer);
+  const color = dangerRatio > 0.15 ? '#E89B4B' : (mode === 'walk' ? '#4A6B45' : '#2E5D8A');
+  routeLayer = L.polyline(coords, {
+    color, weight: 5, opacity: 0.85,
+    dashArray: mode === 'walk' ? null : '6, 8',
+  }).addTo(leafletMap);
+
+  // Update summary
+  const mins = Math.max(1, Math.round(est.expectedSeconds / 60));
+  const km = (est.distanceM / 1000).toFixed(1);
+  const modeLabel = ({ walk: 'walking', bike: 'cycling', rickshaw: 'by rickshaw', car: 'by car' })[mode];
+  document.getElementById('route-summary-text').textContent = `${mins} min · ${km} km ${modeLabel}`;
+
+  // Danger warning (only show for walk + bike where it really matters)
+  const warn = document.getElementById('route-warning');
+  if ((mode === 'walk' || mode === 'bike') && dangerRatio > 0.15) {
+    warn.textContent = `⚠ This route passes through ${dangerCount > 5 ? 'several' : 'a'} reported area${dangerCount > 1 ? 's' : ''}. Stay alert.`;
+    warn.className = 'route-warning';
+    warn.hidden = false;
+  } else if (mode === 'walk' || mode === 'bike') {
+    warn.textContent = '✓ Route avoids all reported zones.';
+    warn.className = 'route-warning route-warning-safe';
+    warn.hidden = false;
+  } else {
+    warn.hidden = true;
   }
 }
 
@@ -1421,6 +1466,7 @@ if (typeof window.onCvUpload !== 'function') {
     }
   };
 }
+if (typeof selectMode === 'function') window.selectMode = selectMode;
 // Defensive globals — ensures all interactive functions are reachable from HTML
 if (typeof onDestInput === 'function')      window.onDestInput = onDestInput;
 if (typeof onDestKey === 'function')        window.onDestKey = onDestKey;

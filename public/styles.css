@@ -3111,3 +3111,49 @@ body {
   background: #FAFAF5;
   border-top: 0.5px solid #E8E3D6;
 }
+/* ════════════════════════════════════════════════════════════
+   TRANSPORT MODE SELECTOR
+   ════════════════════════════════════════════════════════════ */
+.mode-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 10px 0 12px;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  background: #FAFAF5;
+  border: 0.5px solid #D4CFC0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  font-family: 'DM Sans', sans-serif;
+}
+.mode-btn:hover { background: #F0EEE5; }
+.mode-btn:active { transform: scale(0.97); }
+
+.mode-btn-active {
+  background: #4A6B45;
+  border-color: #4A6B45;
+  color: #F5F2E8;
+}
+.mode-btn-active .mode-time { color: #F5F2E8; }
+.mode-btn-active .mode-label { color: #F5F2E8; }
+
+.mode-icon { font-size: 18px; line-height: 1; }
+.mode-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #3D2B2B;
+}
+.mode-time {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6B6347;
+  margin-top: 1px;
+}
