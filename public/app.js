@@ -477,8 +477,8 @@ if (typeof escapeHtml !== 'function') {
 /* ─────────────────────────────────────────────────
    3. SAFE MAP — Light theme, routing, trip tracking
    ───────────────────────────────────────────────── */
+   let mapInitialised = false;
 let leafletMap = null;
-let mapInitialised = false;
 let allReports = [];
 let reportLayers = [];
 
