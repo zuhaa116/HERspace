@@ -779,6 +779,47 @@ app.post('/api/trips', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Could not save trip.' });
   }
 });
+// ═══════════════════════════════════════════════════════════════════════════════
+// CYCLE TRACKER — save / update user's period data
+// ═══════════════════════════════════════════════════════════════════════════════
+app.post('/api/cycle', requireAuth, async (req, res) => {
+  const { lastPeriod, cycleLength } = req.body;
+
+  // Validate
+  const dateMatch = /^\d{4}-\d{2}-\d{2}$/.test(lastPeriod);
+  if (!dateMatch) return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
+  const cycle = parseInt(cycleLength, 10);
+  if (!cycle || cycle < 20 || cycle > 45) return res.status(400).json({ error: 'Cycle length must be between 20 and 45 days.' });
+
+  // Don't accept dates in the future
+  const dateObj = new Date(lastPeriod);
+  if (dateObj > new Date()) return res.status(400).json({ error: 'Last period date cannot be in the future.' });
+
+  if (pool) {
+    try {
+      await pool.query(
+        'UPDATE users SET cycle_last_period=$1, cycle_length=$2 WHERE id=$3',
+        [lastPeriod, cycle, req.user.id]
+      );
+      const updated = await findUserById(req.user.id);
+      return res.json({ ok: true, user: sanitize(updated) });
+    } catch (e) {
+      console.error('[HerSpace] /api/cycle:', e.message);
+      return res.status(500).json({ error: 'Could not save cycle data.' });
+    }
+  } else {
+    // JSON fallback
+    const arr = loadUsersFile();
+    const u = arr.find(x => x.id === req.user.id);
+    if (u) {
+      u.cycleLastPeriod = lastPeriod;
+      u.cycleLength = cycle;
+      saveUsersFile(arr);
+      return res.json({ ok: true, user: sanitize(u) });
+    }
+    return res.status(404).json({ error: 'User not found.' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`[HerSpace] Server listening on port ${PORT}`);
 });

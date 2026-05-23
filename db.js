@@ -70,6 +70,8 @@ async function initDb() {
     console.log('[HerSpace] Postgres tables ready.');
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cv_text TEXT;`);
     await pool.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS distance_m INT;`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cycle_last_period DATE;`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cycle_length INT;`);
 }
 
 // Row-to-object helpers
@@ -80,7 +82,9 @@ function userFromRow(r) {
     name: r.name, city: r.city, age: r.age,
     independent: r.independent,
     cvFilename: r.cv_filename,
-    cvText: r.cv_text,                          // ← add this
+    cvText: r.cv_text,
+    cycleLastPeriod: r.cycle_last_period ? new Date(r.cycle_last_period).toISOString().slice(0, 10) : null,
+    cycleLength: r.cycle_length || null,
     createdAt: Number(r.created_at),
   };
 }

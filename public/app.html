@@ -391,35 +391,103 @@
               <div id="messages-health" class="messages-container">
 
                 <!-- Period Tracker Card -->
-                <div class="period-tracker-card">
-                  <div class="tracker-top">
-                    <div class="tracker-icon-wrap blush-icon-bg">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7F2020" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path
-                          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    </div>
-                    <div class="tracker-text">
-                      <p class="tracker-title">Period tracker</p>
-                      <p class="tracker-subtitle">Next cycle in 12 days</p>
-                    </div>
-                    <span class="badge-pill badge-blush tracker-badge">Day 16</span>
-                  </div>
-                  <div class="cycle-bar-row">
-                    <div class="cycle-bar-track">
-                      <div class="cycle-segment filled-crimson"></div>
-                      <div class="cycle-segment unfilled"></div>
-                      <div class="cycle-segment unfilled"></div>
-                    </div>
-                  </div>
-                  <div class="cycle-labels">
-                    <span>Menstrual</span>
-                    <span>Ovulation</span>
-                    <span>Luteal</span>
-                  </div>
-                </div>
+                <!-- Cycle tracker card (real, persistent) -->
+<div id="cycle-card" class="period-tracker-card">
+  <!-- Setup view (shown when no cycle data) -->
+  <div id="cycle-setup" class="cycle-setup">
+    <div class="tracker-top">
+      <div class="tracker-icon-wrap blush-icon-bg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7F2020" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+      </div>
+      <div class="tracker-text">
+        <p class="tracker-title">Set up your cycle</p>
+        <p class="tracker-subtitle">Add 2 quick details to start tracking.</p>
+      </div>
+    </div>
+    <div class="cycle-setup-fields">
+      <label class="cycle-label">
+        <span>When did your last period start?</span>
+        <input id="cycle-last-period" type="date" class="cycle-input" />
+      </label>
+      <label class="cycle-label">
+        <span>Average cycle length</span>
+        <select id="cycle-length" class="cycle-input">
+          <option value="21">21 days</option>
+          <option value="22">22 days</option>
+          <option value="23">23 days</option>
+          <option value="24">24 days</option>
+          <option value="25">25 days</option>
+          <option value="26">26 days</option>
+          <option value="27">27 days</option>
+          <option value="28" selected>28 days</option>
+          <option value="29">29 days</option>
+          <option value="30">30 days</option>
+          <option value="31">31 days</option>
+          <option value="32">32 days</option>
+          <option value="33">33 days</option>
+          <option value="34">34 days</option>
+          <option value="35">35 days</option>
+          <option value="36">36 days</option>
+          <option value="37">37 days</option>
+          <option value="38">38 days</option>
+          <option value="39">39 days</option>
+          <option value="40">40 days</option>
+        </select>
+      </label>
+      <p id="cycle-setup-error" class="cycle-error" hidden></p>
+      <button id="cycle-save-btn" class="cycle-save-btn" onclick="saveCycle()">Save & start tracking</button>
+    </div>
+  </div>
 
+  <!-- Active tracking view (shown when cycle data exists) -->
+  <div id="cycle-active" class="cycle-active" hidden>
+    <div class="tracker-top">
+      <div class="tracker-icon-wrap blush-icon-bg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7F2020" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+      </div>
+      <div class="tracker-text">
+        <p class="tracker-title">Your cycle</p>
+        <p id="cycle-subtitle" class="tracker-subtitle">Calculating…</p>
+      </div>
+      <span id="cycle-day-badge" class="badge-pill badge-blush tracker-badge">—</span>
+    </div>
+
+    <div class="cycle-progress-wrap">
+      <div class="cycle-progress-bar">
+        <div id="cycle-progress-fill" class="cycle-progress-fill" style="width: 0%"></div>
+        <div id="cycle-progress-marker" class="cycle-progress-marker" style="left: 0%"></div>
+      </div>
+      <div class="cycle-phase-labels">
+        <span>Menstrual</span>
+        <span>Follicular</span>
+        <span>Ovulation</span>
+        <span>Luteal</span>
+      </div>
+    </div>
+
+    <div class="cycle-summary-row">
+      <div class="cycle-summary-item">
+        <p class="cycle-summary-label">Phase</p>
+        <p id="cycle-phase-text" class="cycle-summary-value">—</p>
+      </div>
+      <div class="cycle-summary-item">
+        <p class="cycle-summary-label">Next period</p>
+        <p id="cycle-next-text" class="cycle-summary-value">—</p>
+      </div>
+    </div>
+
+    <div class="cycle-actions">
+      <button class="cycle-log-btn" onclick="logNewPeriod()">+ Log new period</button>
+      <button class="cycle-edit-btn" onclick="editCycle()">Edit</button>
+    </div>
+
+    <p class="cycle-disclaimer">✦ Predictions are estimates. See a doctor for irregular cycles.</p>
+  </div>
+</div>
                 <!-- 2×2 Health Cards Grid -->
                 <div class="health-grid">
                   <div class="health-grid-card">

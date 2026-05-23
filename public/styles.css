@@ -3157,3 +3157,187 @@ body {
   color: #6B6347;
   margin-top: 1px;
 }
+/* ════════════════════════════════════════════════════════════
+   CYCLE TRACKER
+   ════════════════════════════════════════════════════════════ */
+.cycle-setup-fields {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cycle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B6347;
+}
+
+.cycle-input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 0.5px solid #D4CFC0;
+  border-radius: 10px;
+  background: #FAFAF5;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #3D2B2B;
+  box-sizing: border-box;
+}
+.cycle-input:focus {
+  outline: none;
+  border-color: #7F2020;
+  box-shadow: 0 0 0 3px rgba(127, 32, 32, 0.10);
+}
+
+.cycle-save-btn {
+  width: 100%;
+  padding: 11px;
+  background: #7F2020;
+  color: #F5F2E8;
+  border: 0;
+  border-radius: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.cycle-save-btn:hover { background: #6A1A1A; }
+.cycle-save-btn:disabled { opacity: 0.7; cursor: wait; }
+
+.cycle-error {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: #7F2020;
+}
+
+/* Active tracking view */
+.cycle-progress-wrap {
+  margin: 14px 0 10px;
+}
+
+.cycle-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: #F0EEE5;
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.cycle-progress-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: #7F2020;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+.cycle-progress-fill.phase-menstrual { background: #7F2020; }
+.cycle-progress-fill.phase-follicular { background: #C97070; }
+.cycle-progress-fill.phase-ovulation { background: #4A6B45; }
+.cycle-progress-fill.phase-luteal { background: #A09880; }
+
+.cycle-progress-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #FFFFFF;
+  border: 2.5px solid #7F2020;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: left 0.4s ease;
+}
+
+.cycle-phase-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  color: #A09880;
+}
+
+.cycle-summary-row {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.cycle-summary-item {
+  flex: 1;
+  padding: 10px;
+  background: #FAFAF5;
+  border: 0.5px solid #EAE5D8;
+  border-radius: 11px;
+}
+
+.cycle-summary-label {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  color: #A09880;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.cycle-summary-value {
+  margin: 3px 0 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3D2B2B;
+}
+
+.cycle-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cycle-log-btn {
+  flex: 1;
+  padding: 10px;
+  background: #4A6B45;
+  color: #F5F2E8;
+  border: 0;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.cycle-log-btn:hover { background: #3A5635; }
+
+.cycle-edit-btn {
+  padding: 10px 16px;
+  background: #F0EEE5;
+  color: #6B6347;
+  border: 0;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.cycle-edit-btn:hover { background: #E8E3D6; }
+
+.cycle-disclaimer {
+  margin: 0;
+  padding: 8px 10px;
+  background: #F5EDEC;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: #7F2020;
+  line-height: 1.4;
+}

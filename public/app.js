@@ -1466,6 +1466,170 @@ if (typeof window.onCvUpload !== 'function') {
     }
   };
 }
+/* ═══════════════════════════════════════════════════════
+   CYCLE TRACKER
+   ═══════════════════════════════════════════════════════ */
+
+function renderCycleCard() {
+  if (!currentUser) return;
+  const setupEl = document.getElementById('cycle-setup');
+  const activeEl = document.getElementById('cycle-active');
+  if (!setupEl || !activeEl) return;
+
+  if (!currentUser.cycleLastPeriod || !currentUser.cycleLength) {
+    setupEl.style.display = 'block';
+    activeEl.hidden = true;
+    return;
+  }
+
+  setupEl.style.display = 'none';
+  activeEl.hidden = false;
+  computeCycleStats();
+}
+
+function computeCycleStats() {
+  if (!currentUser?.cycleLastPeriod || !currentUser?.cycleLength) return;
+
+  const startDate = new Date(currentUser.cycleLastPeriod + 'T00:00:00');
+  const cycleLen = parseInt(currentUser.cycleLength, 10);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Days since last period start
+  const daysSince = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+  // Current cycle day (1-indexed, wraps modulo cycle length)
+  const cycleDay = ((daysSince % cycleLen) + cycleLen) % cycleLen + 1;
+
+  // Phase calculation
+  let phase;
+  if (cycleDay <= 5) phase = 'Menstrual';
+  else if (cycleDay <= 13) phase = 'Follicular';
+  else if (cycleDay <= 16) phase = 'Ovulation';
+  else phase = 'Luteal';
+
+  // Next period
+  const cyclesPassed = Math.floor(daysSince / cycleLen);
+  const nextPeriod = new Date(startDate);
+  nextPeriod.setDate(startDate.getDate() + (cyclesPassed + 1) * cycleLen);
+  const daysUntilNext = Math.ceil((nextPeriod - today) / (1000 * 60 * 60 * 24));
+
+  // Update UI
+  document.getElementById('cycle-day-badge').textContent = `Day ${cycleDay}`;
+  document.getElementById('cycle-phase-text').textContent = phase;
+  document.getElementById('cycle-subtitle').textContent =
+    daysUntilNext === 0 ? 'Period expected today' :
+    daysUntilNext === 1 ? 'Next cycle starts tomorrow' :
+    `Next cycle in ${daysUntilNext} days`;
+
+  const nextDateStr = nextPeriod.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  document.getElementById('cycle-next-text').textContent = nextDateStr;
+
+  // Progress bar — fill based on cycleDay / cycleLen
+  const progressPct = ((cycleDay - 1) / cycleLen) * 100;
+  document.getElementById('cycle-progress-fill').style.width = `${progressPct}%`;
+  document.getElementById('cycle-progress-marker').style.left = `${progressPct}%`;
+
+  // Color the progress fill by phase
+  const fill = document.getElementById('cycle-progress-fill');
+  fill.className = 'cycle-progress-fill phase-' + phase.toLowerCase();
+}
+
+async function saveCycle() {
+  const errEl = document.getElementById('cycle-setup-error');
+  const btn = document.getElementById('cycle-save-btn');
+  errEl.hidden = true;
+
+  const lastPeriod = document.getElementById('cycle-last-period').value;
+  const cycleLength = document.getElementById('cycle-length').value;
+
+  if (!lastPeriod) {
+    errEl.textContent = 'Please pick the start date of your last period.';
+    errEl.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('/api/cycle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lastPeriod, cycleLength }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Could not save.';
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Save & start tracking';
+      return;
+    }
+    currentUser = data.user;
+    if (typeof showToast === 'function') showToast('Cycle saved ✓', 'success');
+    renderCycleCard();
+  } catch (err) {
+    errEl.textContent = 'Could not reach server.';
+    errEl.hidden = false;
+    btn.disabled = false;
+    btn.textContent = 'Save & start tracking';
+  }
+}
+
+function editCycle() {
+  // Switch back to setup view, pre-fill with current values
+  document.getElementById('cycle-active').hidden = true;
+  document.getElementById('cycle-setup').style.display = 'block';
+  if (currentUser.cycleLastPeriod) {
+    document.getElementById('cycle-last-period').value = currentUser.cycleLastPeriod;
+  }
+  if (currentUser.cycleLength) {
+    document.getElementById('cycle-length').value = String(currentUser.cycleLength);
+  }
+}
+
+async function logNewPeriod() {
+  if (!confirm('Log today as your new period start?')) return;
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const res = await fetch('/api/cycle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lastPeriod: today, cycleLength: currentUser.cycleLength || 28 }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (typeof showToast === 'function') showToast(data.error || 'Could not log.', 'error');
+      return;
+    }
+    currentUser = data.user;
+    if (typeof showToast === 'function') showToast('Period logged ✓', 'success');
+    renderCycleCard();
+  } catch (err) {
+    if (typeof showToast === 'function') showToast('Could not reach server.', 'error');
+  }
+}
+
+// Render the cycle card whenever the Health tab opens
+const _originalSwitchSubTab = switchSubTab;
+switchSubTab = function(name) {
+  _originalSwitchSubTab(name);
+  if (name === 'health') {
+    setTimeout(renderCycleCard, 50);
+  }
+};
+
+// Also render on initial bootstrap if user is already logged in
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (currentUser) renderCycleCard();
+  }, 500);
+});
+
+// Expose for HTML onclick
+window.saveCycle = saveCycle;
+window.editCycle = editCycle;
+window.logNewPeriod = logNewPeriod;
 if (typeof selectMode === 'function') window.selectMode = selectMode;
 // Defensive globals — ensures all interactive functions are reachable from HTML
 if (typeof onDestInput === 'function')      window.onDestInput = onDestInput;
