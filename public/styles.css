@@ -20,6 +20,92 @@ body {
   justify-content: center;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════
+   INTRO SPLASH
+   ═══════════════════════════════════════════════════════════ */
+.intro-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: introFadeOut 0.6s ease 3s forwards;
+}
+
+.intro-splash.hidden {
+  display: none;
+}
+
+.intro-video-wrap {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* show the RIGHT side of the landscape video */
+}
+
+.intro-video {
+  height: 100vh;
+  width: auto;
+  /* push the video left so only the right portion (a vertical slice) is visible */
+  transform: translateX(0);
+  object-fit: cover;
+  object-position: right center;
+}
+
+/* On wider portrait viewports, force aspect to the right slice */
+@media (orientation: portrait) {
+  .intro-video {
+    height: 100vh;
+    width: auto;
+    min-width: 100vw;
+    object-position: 100% center; /* anchor to right edge */
+  }
+}
+
+.intro-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.15); /* light dim so logo reads */
+}
+
+.intro-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 56px;
+  font-weight: 600;
+  color: #F5F2E8;
+  letter-spacing: 6px;
+  margin: 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  animation: introLogoIn 0.7s ease 0.4s forwards,
+             introLogoOut 0.6s ease 2.5s forwards;
+}
+
+@keyframes introLogoIn {
+  from { opacity: 0; transform: scale(0.92); letter-spacing: 14px; }
+  to   { opacity: 1; transform: scale(1);    letter-spacing: 6px; }
+}
+
+@keyframes introLogoOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes introFadeOut {
+  to { opacity: 0; visibility: hidden; }
+}
 /* ── Page Background ──────────────────────────── */
 .page-bg {
   width: 100%;
