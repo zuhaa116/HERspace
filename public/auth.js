@@ -5,12 +5,6 @@
 
 // If already logged in, skip the landing page entirely
 // Hide intro splash after 3.6s (matches CSS animation timing)
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const splash = document.getElementById('intro-splash');
-    if (splash) splash.classList.add('hidden');
-  }, 7600);
-});
 (async function checkExistingSession() {
   try {
     const res = await fetch('/api/me');
