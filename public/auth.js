@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const splash = document.getElementById('intro-splash');
     if (splash) splash.classList.add('hidden');
-  }, 3600);
+  }, 7600);
 });
 (async function checkExistingSession() {
   try {
