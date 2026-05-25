@@ -8,11 +8,13 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-not-for-production';
 // ═══════════════════════════════════════════════════════════════════════════════
 // JSON FILE DATABASE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -146,6 +148,42 @@ async function requireAuth(req, res, next) {
   req.user = user;
   next();
 }
+// Token-based auth middleware — for Flutter / mobile clients
+// Looks for "Authorization: Bearer <token>" header
+function requireToken(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Missing token.' });
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.tokenUserId = payload.userId;
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token.' });
+  }
+}
+
+// Hybrid middleware: accepts EITHER cookie session OR Bearer token
+// Use this on endpoints that should work for both web and mobile
+async function requireAuthOrToken(req, res, next) {
+  // Try token first
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (token) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET);
+      const u = await findUserById(payload.userId);
+      if (u) {
+        req.user = u;
+        return next();
+      }
+    } catch (e) { /* fall through to cookie */ }
+  }
+  // Fall back to cookie auth
+  return requireAuth(req, res, next);
+}
+
 
 function sanitize(user) {
   const { passwordHash, ...safe } = user;
@@ -246,7 +284,58 @@ app.post('/api/login', async (req, res) => {
     return res.status(500).json({ error: 'Login failed.' });
   }
 });
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOKEN-BASED AUTH for Flutter / mobile clients
+// Same login flow as /api/login, but returns a JWT token instead of setting a cookie
+// ═══════════════════════════════════════════════════════════════════════════════
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
 
+  try {
+    const user = await findUserByEmail(email.toLowerCase().trim());
+    if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: 'Invalid email or password.' });
+
+    // Sign a token valid for 30 days
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+    return res.json({ token, user: sanitize(user) });
+  } catch (e) {
+    console.error('[HerSpace] /api/auth/login:', e.message);
+    return res.status(500).json({ error: 'Could not log in.' });
+  }
+});
+
+app.post('/api/auth/signup', async (req, res) => {
+  const { email, password, name, city, age, independent } = req.body;
+  if (!email || !password || !name || !city) {
+    return res.status(400).json({ error: 'Email, password, name, and city required.' });
+  }
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+
+  try {
+    const existing = await findUserByEmail(email.toLowerCase().trim());
+    if (existing) return res.status(400).json({ error: 'An account with that email already exists.' });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await createUser({
+      email: email.toLowerCase().trim(),
+      passwordHash,
+      name: name.trim(),
+      city: city.trim(),
+      age: parseInt(age, 10) || null,
+      independent: !!independent,
+    });
+
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+    return res.json({ token, user: sanitize(user) });
+  } catch (e) {
+    console.error('[HerSpace] /api/auth/signup:', e.message);
+    return res.status(500).json({ error: 'Could not create account.' });
+  }
+});
 app.post('/api/logout', async (req, res) => {
   const sid = req.cookies.hs_session;
   if (sid) await deleteSession(sid);
