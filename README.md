@@ -1,5 +1,5 @@
 # HerSpace
-A women's empowerment platform for Women all over the world featuring AI career guidance, community workplace reviews, a safe-places map, and a mental health chatbot.
+A women's empowerment platform for Pakistan and South Asia — featuring AI career guidance, community workplace reviews, a safe-places map, and a mental health chatbot.
 
 ## My Contribution
 
@@ -12,7 +12,7 @@ I conceived HerSpace from the ground up, the idea, the planning, and the full bu
 
 ## Quick Start
 
-​```bash
+```bash
 # 1. Install dependencies
 npm install
 
@@ -25,11 +25,11 @@ npm start
 
 # 4. Open in browser
 http://localhost:3000
-​```
+```
 
 ## Project Structure
 
-​```
+```
 herspace/
 ├── server.js           Express server, API routes, and OpenAI proxy
 ├── db.js               Database connection and queries
@@ -44,11 +44,24 @@ herspace/
     ├── app.js           Navigation, Leaflet map, chat logic
     ├── auth.css         Auth screen styling
     └── auth.js          Sign up / login logic
-​```
+```
 
 ## Features
 
 | Screen | Description |
 |--------|-------------|
 | Home | Matched jobs, scholarships, and opportunities powered by C.A.R.E. AI |
-| Community |
+| Community | Workplace reviews rated by women |
+| Safe Map | Leaflet dark map with safe/flagged location pins across Lahore |
+| ChatBot | Live GPT-4o-mini chat across Career, Health, and Wellbeing tabs |
+| Auth | Account creation and login, with secure password hashing |
+
+## Notes
+- The OpenAI API key never reaches the browser, all requests proxy through /api/chat.
+- User passwords are hashed with bcrypt before storage.
+- Node 18+ is required.
+- Uses PostgreSQL for data storage (see db.js).
+- The map uses CartoDB Dark Matter tiles and Leaflet 1.9.4 (loaded via CDN).
+- Configured for deployment on Railway (see railway.toml).
+
+Note: This repository is a fork of the original team project.
