@@ -1,5 +1,5 @@
 # HerSpace
-A women's empowerment platform for Pakistan and South Asia — featuring AI career guidance, community workplace reviews, a safe-places map, and a mental health chatbot.
+A women's empowerment platform for Pakistan and South Asia featuring AI career guidance, community workplace reviews, a safe-places map, and a mental health chatbot.
 
 ## Live Demo
 
